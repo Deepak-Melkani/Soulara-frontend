@@ -18,16 +18,22 @@ const COOKIE_OPTIONS = {
   sameSite: "lax" as const,
 };
 
-const setAuthData = (user: User, token: string) => {
+const setAuthData = (user: User, accessToken: string, refreshToken?: string) => {
   if (typeof window !== "undefined") {
-    localStorage.setItem("authToken", token);
+    localStorage.setItem("authToken", accessToken);
     localStorage.setItem("user", JSON.stringify(user));
     localStorage.setItem("userId", user._id);
+    if (refreshToken) {
+      localStorage.setItem("refreshToken", refreshToken);
+    }
   }
 
-  Cookies.set("authToken", token, COOKIE_OPTIONS);
+  Cookies.set("authToken", accessToken, COOKIE_OPTIONS);
   Cookies.set("user", JSON.stringify(user), COOKIE_OPTIONS);
   Cookies.set("userId", user._id, COOKIE_OPTIONS);
+  if (refreshToken) {
+    Cookies.set("refreshToken", refreshToken, { ...COOKIE_OPTIONS, expires: 7 });
+  }
 };
 
 const getAuthData = () => {
@@ -53,11 +59,13 @@ const getAuthData = () => {
 const clearAuthData = () => {
   if (typeof window !== "undefined") {
     localStorage.removeItem("authToken");
+    localStorage.removeItem("refreshToken");
     localStorage.removeItem("user");
     localStorage.removeItem("userId");
   }
 
   Cookies.remove("authToken", { path: "/" });
+  Cookies.remove("refreshToken", { path: "/" });
   Cookies.remove("user", { path: "/" });
   Cookies.remove("userId", { path: "/" });
 };
@@ -78,6 +86,7 @@ export interface User {
     address?: string;
     city?: string;
     country?: string;
+    coordinates?: number[];
   };
   agePreferences?: {
     min?: number;
@@ -105,6 +114,33 @@ export interface User {
   profileCompleteness?: number;
   createdAt?: string;
   lastActive?: string;
+  
+  // Additional fields from backend model
+  genderPreference?: "men" | "women" | "both" | "other";
+  profileViews?: number;
+  totalSwipes?: number;
+  isVerified?: boolean;
+  verificationBadges?: Array<{
+    type: "email" | "phone" | "photo" | "social";
+    verifiedAt: string;
+  }>;
+  deviceTokens?: Array<{
+    token: string;
+    platform: "ios" | "android" | "web";
+    createdAt: string;
+  }>;
+  
+  // Dating app specific arrays
+  matches?: string[]; // User IDs
+  crushes?: string[]; // User IDs
+  likes?: Array<{
+    userId: string;
+    likedAt: string;
+  }>;
+  passedBy?: Array<{
+    userId: string;
+    passedAt: string;
+  }>;
 }
 
 interface AuthState {
@@ -214,6 +250,7 @@ interface LoginResponse {
       lastActive?: string;
     };
     accessToken: string;
+    refreshToken: string;
     expiresAt: string;
     profileCompleteness: number;
   };
@@ -301,7 +338,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       };
 
       if (token) {
-        setAuthData(user, token);
+        const refreshToken = response.data.refreshToken;
+        setAuthData(user, token, refreshToken);
       }
 
       dispatch({ type: "LOGIN_SUCCESS", payload: user });
@@ -332,16 +370,39 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const logout = (redirectTo: string = '/') => {
-    clearAuthData();
-    dispatch({ type: "LOGOUT" });
-    
-    // Navigate to the specified route (default to home page)
-    router.push(redirectTo);
+  const logout = async (redirectTo: string = '/') => {
+    try {
+      // Call backend logout endpoint to invalidate refresh token
+      await authAPI.logout();
+    } catch (error) {
+      // Continue with logout even if API call fails
+      console.error("Logout API call failed:", error);
+    } finally {
+      clearAuthData();
+      dispatch({ type: "LOGOUT" });
+      
+      // Navigate to the specified route (default to home page)
+      router.push(redirectTo);
+    }
   };
 
   const updateProfile = (data: Partial<User>) => {
+    // Update the state via reducer
     dispatch({ type: "UPDATE_PROFILE", payload: data });
+    
+    // Also update localStorage and cookies with the updated user data
+    const currentUser = state.user;
+    if (currentUser) {
+      const updatedUser = { ...currentUser, ...data };
+      
+      // Update localStorage
+      if (typeof window !== "undefined") {
+        localStorage.setItem("user", JSON.stringify(updatedUser));
+      }
+      
+      // Update cookies
+      Cookies.set("user", JSON.stringify(updatedUser), COOKIE_OPTIONS);
+    }
   };
 
   const clearError = () => {

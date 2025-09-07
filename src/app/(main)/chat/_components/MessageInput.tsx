@@ -23,7 +23,7 @@ const MessageInput: React.FC<MessageInputProps> = ({
   message,
   onMessageChange,
   onSendMessage,
-  onVoiceRecord: _onVoiceRecord, 
+  onVoiceRecord,
   onImageSelect,
   onFileSelect,
   disabled = false,
@@ -105,6 +105,14 @@ const MessageInput: React.FC<MessageInputProps> = ({
       const transcript = event.results[0][0].transcript;
       onMessageChange(message ? message + ' ' + transcript : transcript);
       setIsRecording(false);
+      
+      // Call onVoiceRecord if provided
+      if (onVoiceRecord) {
+        console.log('Voice recording completed:', transcript);
+        // Create a mock audio blob since we're using speech recognition
+        const mockBlob = new Blob([transcript], { type: 'text/plain' });
+        onVoiceRecord(mockBlob);
+      }
     };
 
     recognition.onerror = () => {

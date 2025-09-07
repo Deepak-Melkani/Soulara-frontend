@@ -1,35 +1,23 @@
-export interface ProfileData {
-  id: string
-  name: string
-  age: number
-  gender: 'male' | 'female' | 'other'
-  preference: 'men' | 'women' | 'both' | 'Mard'
-  bio: string
-  profilePicture?: string
-  email: string
-  address: string
-  phone: string
-  agePreference: {
-    min: number
-    max: number
-  }
-  privacy: 'public' | 'private'
-  socialLinks: {
-    facebook: string
-    instagram: string
-    twitter: string
-  }
-  subscription: {
-    currentPlan: 'free' | 'premium' | 'gold'
-    active: boolean
-  }
-  lookingFor: 'casual' | 'relationship' | 'friendship' | 'other'
-  stats: {
-    crushes: number
-    swipes: number
-    matches: number
-    views: number
-  }
+import { User } from '@/context/AuthContext'
+
+// Re-export the User type for profile usage
+export type ProfileUser = User
+
+// Additional stats interface for profile display
+export interface ProfileStats {
+  crushes: number
+  swipes: number
+  matches: number
+  views: number
+}
+
+// Extended User type with computed stats for profile display
+export interface ProfileData extends User {
+  stats?: ProfileStats
+  // Computed fields for display
+  name?: string // firstName + lastName
+  age?: number // computed from dob
+  preference?: string // mapped from genderPreference
 }
 
 export interface NotificationItem {

@@ -7,43 +7,13 @@ import ProfileSidebar from './_components/ProfileSidebar'
 import ProfileDetailsForm from './_components/ProfileDetailsForm'
 import NotificationsPanel from './_components/NotificationsPanel'
 import FloatingNotification from './_components/FloatingNotification'
-import { ProfileData, NotificationItem } from './types'
+import EditProfileModal from './_components/EditProfileModal'
+import { NotificationItem } from './types'
+import { useAuth, User } from '@/context/AuthContext'
+import { apiRequest } from '@/lib/api'
+import { toast } from 'sonner'
 
-// Mock data - In a real app, this would come from your API/database
-const mockProfileData: ProfileData = {
-  id: '1',
-  name: 'Kanika Johnson',
-  age: 28,
-  gender: 'female',
-  preference: 'Mard',
-  bio: 'Love hiking, photography, and good coffee. Looking for someone to share adventures with.',
-  profilePicture: 'https://i.pinimg.com/1200x/57/38/13/57381305647d560708de3d83a1cfbb36.jpg',
-  email: 'kanika.johnson@example.com',
-  address: '123 Main St, San Francisco, CA 94105',
-  phone: '+1 (555) 123-4567',
-  agePreference: {
-    min: 24,
-    max: 35
-  },
-  privacy: 'public',
-  socialLinks: {
-    facebook: 'facebook.com/alexjohnson',
-    instagram: '@alexjohnson',
-    twitter: '@alexj'
-  },
-  subscription: {
-    currentPlan: 'premium',
-    active: true
-  },
-  lookingFor: 'relationship',
-  stats: {
-    crushes: 12,
-    swipes: 89,
-    matches: 23,
-    views: 156
-  }
-}
-
+// Mock notifications for now - this would also come from API
 const mockNotifications: NotificationItem[] = [
   {
     id: '1',
@@ -102,18 +72,69 @@ const mockNotifications: NotificationItem[] = [
 ]
 
 function ProfilePageContent() {
-  const [profileData, setProfileData] = useState<ProfileData>(mockProfileData)
+  const { user, updateProfile: updateAuthProfile } = useAuth()
   const [notifications, setNotifications] = useState<NotificationItem[]>(mockNotifications)
+  const [isLoading, setIsLoading] = useState(false)
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false)
 
-  const handleProfileSave = (updatedProfile: Partial<ProfileData>) => {
-    setProfileData(prev => ({ ...prev, ...updatedProfile }))
-    // In a real app, you would call your API here
-    console.log('Profile updated:', updatedProfile)
+  const handleProfileSave = async (updatedData: Partial<User>) => {
+    if (!user) return
+
+    setIsLoading(true)
+    try {
+      // Update payload with the changes
+      const updatePayload: Partial<User> = {
+        ...updatedData, // Direct use of User fields
+        // Ensure we don't send computed fields to backend
+        matches: undefined,
+        likes: undefined,
+        crushes: undefined,
+        passedBy: undefined
+      }
+
+      const response = await apiRequest<{success: boolean; data: {user: User}}>('/users/profile', {
+        method: 'PUT',
+        body: JSON.stringify(updatePayload)
+      })
+
+      if (response.success) {
+        // Update local auth context with the returned user data
+        updateAuthProfile(response.data.user)
+        
+        toast.success('Profile updated successfully!')
+      }
+    } catch (error) {
+      console.error('Profile update error:', error)
+      toast.error(error instanceof Error ? error.message : 'Failed to update profile')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleRefreshProfile = async () => {
+    if (!user) return
+    
+    setIsLoading(true)
+    try {
+      const response = await apiRequest<{success: boolean; data: {user: User}}>('/users/refresh', {
+        method: 'GET'
+      })
+
+      if (response.success) {
+        // Update auth context with fresh data
+        updateAuthProfile(response.data.user)
+        toast.success('Profile refreshed successfully!')
+      }
+    } catch (error) {
+      console.error('Profile refresh error:', error)
+      toast.error(error instanceof Error ? error.message : 'Failed to refresh profile')
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   const handleProfileEdit = () => {
-    // Scroll to the form or focus on the first input
-    console.log('Edit profile clicked')
+    setIsEditModalOpen(true)
   }
 
   const handleProfilePictureChange = (file: File) => {
@@ -136,15 +157,22 @@ function ProfilePageContent() {
     )
   }
 
+  // Show loading skeleton if profile data is not ready
+  if (!user) {
+    return <ProfilePageSkeleton />
+  }
+
   return (
     <>
       <div className="grid grid-cols-1 lg:grid-cols-[288px_1fr_288px] gap-4">
         {/* Column 1: Profile Sidebar */}
         <div className="order-2 lg:order-1">
           <ProfileSidebar
-            profile={profileData}
+            profile={user}
             onEdit={handleProfileEdit}
             onProfilePictureChange={handleProfilePictureChange}
+            onRefresh={handleRefreshProfile}
+            isLoading={isLoading}
           />
         </div>
 
@@ -168,8 +196,9 @@ function ProfilePageContent() {
             </div>
           }>
             <ProfileDetailsForm
-              profile={profileData}
+              profile={user}
               onSave={handleProfileSave}
+              isLoading={isLoading}
             />
           </ClientOnly>
         </div>
@@ -208,6 +237,17 @@ function ProfilePageContent() {
           onMarkAsRead={handleMarkAsRead}
         />
       </ClientOnly>
+
+      {/* Edit Profile Modal */}
+      {user && (
+        <EditProfileModal
+          isOpen={isEditModalOpen}
+          onClose={() => setIsEditModalOpen(false)}
+          user={user}
+          onSave={handleProfileSave}
+          isLoading={isLoading}
+        />
+      )}
     </>
   )
 }

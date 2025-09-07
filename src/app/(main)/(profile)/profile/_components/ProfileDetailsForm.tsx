@@ -8,19 +8,20 @@ import { Button } from '@/components/ui/button'
 import { Switch } from '@/components/ui/switch'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Label } from '@/components/ui/label'
-import { ProfileData } from '../types'
+import { User } from '@/context/AuthContext'
 
 interface ProfileDetailsFormProps {
-  profile: ProfileData
-  onSave?: (updatedProfile: Partial<ProfileData>) => void
+  profile: User
+  onSave?: (updatedProfile: Partial<User>) => void | Promise<void>
+  isLoading?: boolean
 }
 
-export default function ProfileDetailsForm({ profile, onSave }: ProfileDetailsFormProps) {
-  const [formData, setFormData] = useState<ProfileData>(profile)
+export default function ProfileDetailsForm({ profile, onSave, isLoading = false }: ProfileDetailsFormProps) {
+  const [formData, setFormData] = useState<User>(profile)
   const [showPassword, setShowPassword] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
 
-  const handleInputChange = (field: keyof ProfileData, value: string | boolean) => {
+  const handleInputChange = (field: keyof User, value: string | boolean) => {
     setFormData(prev => ({
       ...prev,
       [field]: value
@@ -29,7 +30,7 @@ export default function ProfileDetailsForm({ profile, onSave }: ProfileDetailsFo
   }
 
   const handleNestedInputChange = (
-    parentField: keyof ProfileData, 
+    parentField: keyof User, 
     childField: string, 
     value: string | number | boolean
   ) => {
@@ -43,9 +44,9 @@ export default function ProfileDetailsForm({ profile, onSave }: ProfileDetailsFo
     setIsEditing(true)
   }
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (onSave) {
-      onSave(formData)
+      await onSave(formData)
     }
     setIsEditing(false)
   }
@@ -58,9 +59,14 @@ export default function ProfileDetailsForm({ profile, onSave }: ProfileDetailsFo
           <CardTitle className="flex items-center justify-between">
             <span>Basic Information</span>
             {isEditing && (
-              <Button onClick={handleSave} size="sm" className="bg-green-600 hover:bg-green-700">
+              <Button 
+                onClick={handleSave} 
+                size="sm" 
+                className="bg-green-600 hover:bg-green-700"
+                disabled={isLoading}
+              >
                 <Save className="w-4 h-4 mr-2" />
-                Save Changes
+                {isLoading ? 'Saving...' : 'Save Changes'}
               </Button>
             )}
           </CardTitle>
@@ -93,8 +99,8 @@ export default function ProfileDetailsForm({ profile, onSave }: ProfileDetailsFo
             <Label htmlFor="address">Address</Label>
             <Input
               id="address"
-              value={formData.address}
-              onChange={(e) => handleInputChange('address', e.target.value)}
+              value={formData.location?.address || ''}
+              onChange={(e) => handleNestedInputChange('location', 'address', e.target.value)}
               placeholder="123 Main St, City, State, ZIP"
             />
           </div>
@@ -137,8 +143,8 @@ export default function ProfileDetailsForm({ profile, onSave }: ProfileDetailsFo
                 <Input
                   id="min-age"
                   type="number"
-                  value={formData.agePreference.min}
-                  onChange={(e) => handleNestedInputChange('agePreference', 'min', parseInt(e.target.value))}
+                  value={formData.agePreferences?.min || ''}
+                  onChange={(e) => handleNestedInputChange('agePreferences', 'min', parseInt(e.target.value))}
                   min="18"
                   max="100"
                 />
@@ -148,8 +154,8 @@ export default function ProfileDetailsForm({ profile, onSave }: ProfileDetailsFo
                 <Input
                   id="max-age"
                   type="number"
-                  value={formData.agePreference.max}
-                  onChange={(e) => handleNestedInputChange('agePreference', 'max', parseInt(e.target.value))}
+                  value={formData.agePreferences?.max || ''}
+                  onChange={(e) => handleNestedInputChange('agePreferences', 'max', parseInt(e.target.value))}
                   min="18"
                   max="100"
                 />
@@ -198,7 +204,7 @@ export default function ProfileDetailsForm({ profile, onSave }: ProfileDetailsFo
             <Label htmlFor="instagram">Instagram</Label>
             <Input
               id="instagram"
-              value={formData.socialLinks.instagram}
+              value={formData.socialLinks?.instagram || ''}
               onChange={(e) => handleNestedInputChange('socialLinks', 'instagram', e.target.value)}
               placeholder="@username"
             />
@@ -207,7 +213,7 @@ export default function ProfileDetailsForm({ profile, onSave }: ProfileDetailsFo
             <Label htmlFor="twitter">Twitter</Label>
             <Input
               id="twitter"
-              value={formData.socialLinks.twitter}
+              value={formData.socialLinks?.twitter || ''}
               onChange={(e) => handleNestedInputChange('socialLinks', 'twitter', e.target.value)}
               placeholder="@username"
             />
@@ -216,7 +222,7 @@ export default function ProfileDetailsForm({ profile, onSave }: ProfileDetailsFo
             <Label htmlFor="facebook">Facebook</Label>
             <Input
               id="facebook"
-              value={formData.socialLinks.facebook}
+              value={formData.socialLinks?.facebook || ''}
               onChange={(e) => handleNestedInputChange('socialLinks', 'facebook', e.target.value)}
               placeholder="facebook.com/username"
             />
@@ -232,15 +238,14 @@ export default function ProfileDetailsForm({ profile, onSave }: ProfileDetailsFo
         <CardContent className="space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="font-medium">Current Plan: {formData.subscription.currentPlan.toUpperCase()}</p>
+              <p className="font-medium">Current Plan: {(formData.subscription || 'free').toUpperCase()}</p>
               <p className="text-sm text-gray-600">
-                {formData.subscription.active ? 'Active' : 'Inactive'}
+                {formData.subscription === 'solara' ? 'Premium' : 'Basic'}
               </p>
             </div>
-            <Switch
-              checked={formData.subscription.active}
-              onCheckedChange={(checked) => handleNestedInputChange('subscription', 'active', checked)}
-            />
+            <div className="text-sm text-gray-500">
+              Subscription: {formData.subscription || 'free'}
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -263,13 +268,13 @@ export default function ProfileDetailsForm({ profile, onSave }: ProfileDetailsFo
                   <Heart className="w-6 h-6 text-red-500 group-hover:scale-110 transition-transform duration-300" />
                 </div>
                 <div>
-                  <p className="text-3xl font-bold text-gray-800 group-hover:text-red-600 transition-colors duration-300">{profile.stats.crushes}</p>
-                  <p className="text-sm font-medium text-gray-600">Crushes</p>
+                  <p className="text-3xl font-bold text-gray-800 group-hover:text-red-600 transition-colors duration-300">{profile.likes?.length || 0}</p>
+                  <p className="text-sm font-medium text-gray-600">Likes</p>
                 </div>
               </div>
             </div>
             
-            {/* Swipes Stat */}
+            {/* Matches Stat */}
             <div className="group relative overflow-hidden rounded-xl bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-100 hover:border-blue-300 transition-all duration-300 hover:shadow-lg hover:shadow-blue-100 hover:-translate-y-1">
               <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-indigo-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
               <div className="relative p-4 text-center space-y-3">
@@ -277,13 +282,13 @@ export default function ProfileDetailsForm({ profile, onSave }: ProfileDetailsFo
                   <Users className="w-6 h-6 text-blue-500 group-hover:scale-110 transition-transform duration-300" />
                 </div>
                 <div>
-                  <p className="text-3xl font-bold text-gray-800 group-hover:text-blue-600 transition-colors duration-300">{profile.stats.swipes}</p>
-                  <p className="text-sm font-medium text-gray-600">Your Swipes</p>
+                  <p className="text-3xl font-bold text-gray-800 group-hover:text-blue-600 transition-colors duration-300">{profile.matches?.length || 0}</p>
+                  <p className="text-sm font-medium text-gray-600">Matches</p>
                 </div>
               </div>
             </div>
 
-            {/* Matches Stat */}
+            {/* Views Stat */}
             <div className="group relative overflow-hidden rounded-xl bg-gradient-to-br from-green-50 to-emerald-50 border border-green-100 hover:border-green-300 transition-all duration-300 hover:shadow-lg hover:shadow-green-100 hover:-translate-y-1">
               <div className="absolute inset-0 bg-gradient-to-br from-green-500/5 to-emerald-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
               <div className="relative p-4 text-center space-y-3">
@@ -291,13 +296,13 @@ export default function ProfileDetailsForm({ profile, onSave }: ProfileDetailsFo
                   <BarChart3 className="w-6 h-6 text-green-500 group-hover:scale-110 transition-transform duration-300" />
                 </div>
                 <div>
-                  <p className="text-3xl font-bold text-gray-800 group-hover:text-green-600 transition-colors duration-300">{profile.stats.matches}</p>
-                  <p className="text-sm font-medium text-gray-600">Matches</p>
+                  <p className="text-3xl font-bold text-gray-800 group-hover:text-green-600 transition-colors duration-300">{profile.profileViews || 0}</p>
+                  <p className="text-sm font-medium text-gray-600">Profile Views</p>
                 </div>
               </div>
             </div>
 
-            {/* Views Stat */}
+            {/* Completeness Stat */}
             <div className="group relative overflow-hidden rounded-xl bg-gradient-to-br from-purple-50 to-violet-50 border border-purple-100 hover:border-purple-300 transition-all duration-300 hover:shadow-lg hover:shadow-purple-100 hover:-translate-y-1">
               <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-violet-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
               <div className="relative p-4 text-center space-y-3">
@@ -305,8 +310,8 @@ export default function ProfileDetailsForm({ profile, onSave }: ProfileDetailsFo
                   <EyeIcon className="w-6 h-6 text-purple-500 group-hover:scale-110 transition-transform duration-300" />
                 </div>
                 <div>
-                  <p className="text-3xl font-bold text-gray-800 group-hover:text-purple-600 transition-colors duration-300">{profile.stats.views}</p>
-                  <p className="text-sm font-medium text-gray-600">Profile Views</p>
+                  <p className="text-3xl font-bold text-gray-800 group-hover:text-purple-600 transition-colors duration-300">{profile.profileCompleteness || 0}%</p>
+                  <p className="text-sm font-medium text-gray-600">Completeness</p>
                 </div>
               </div>
             </div>
