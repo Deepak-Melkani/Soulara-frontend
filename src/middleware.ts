@@ -16,15 +16,19 @@ const authRoutes = ['/login', '/signup']
 // Define private routes that require authentication
 const privateRoutes = [
   '/profile',
-  '/find-match',
-  '/admin'
+  '/find-match', 
+  '/admin',
+  '/chat',
+  '/chat/*'
 ]
 
 // Define private route patterns
 const privateRoutePatterns = [
-  /^\/profile\/.*$/,  // All profile routes
-  /^\/dashboard\/.*$/, // All dashboard routes
-  /^\/admin\/.*$/,    // All admin routes
+  /^\/profile(\?.*)?$/,   // /profile and /profile?query 
+  /^\/profile\/.*$/,      // All profile subroutes
+  /^\/dashboard\/.*$/,    // All dashboard routes
+  /^\/admin\/.*$/,        // All admin routes
+  /^\/chat\/.*$/,         // All chat routes
 ]
 
 function isPublicRoute(pathname: string): boolean {

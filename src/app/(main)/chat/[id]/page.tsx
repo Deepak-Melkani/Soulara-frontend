@@ -202,7 +202,7 @@ const ChatRoomPage: React.FC = () => {
         }, 500); // Small delay to simulate API call
       }
     }
-  }, [chatId, chatRoom?.messages.length]); // Added chatId to dependencies
+  }, [chatId, chatRoom?.messages.length, chatRoom]); // Added chatRoom to dependencies
 
   const handleSendMessage = () => {
     if (!message.trim() || !chatRoom) return;
@@ -286,16 +286,19 @@ const ChatRoomPage: React.FC = () => {
   const handleCall = () => {
     // TODO: Implement voice call
     console.log('Voice call initiated');
+    alert('Voice call feature is not implemented yet.');
   };
 
   const handleVideoCall = () => {
     // TODO: Implement video call
     console.log('Video call initiated');
+    alert('Voice call feature is not implemented yet.');
   };
 
   const handleMoreOptions = () => {
     // TODO: Implement more options menu
     console.log('More options clicked');
+    alert('More options feature is not implemented yet.');
   };
 
   const getOtherUser = (): ChatUser | undefined => {

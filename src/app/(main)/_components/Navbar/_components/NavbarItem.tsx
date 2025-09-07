@@ -20,7 +20,7 @@ const NavbarItem = ({ icon, label, onClick, badge, className }: NavbarItemProps)
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       className={cn(
-        "relative flex flex-col items-center justify-center px-3 py-2 min-w-[60px] rounded-lg transition-all duration-200 hover:bg-accent group overflow-hidden",
+        "relative cursor-pointer flex flex-col items-center justify-center px-3 py-2 min-w-[60px] rounded-lg transition-all duration-200 hover:bg-accent group overflow-hidden",
         className
       )}
     >

@@ -53,17 +53,8 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
   return (
     <div className={`w-full sm:w-80 md:w-96 lg:w-[400px] border-r border-gray-200 bg-white flex flex-col h-full ${className}`}>
       {/* Header */}
-      <div className="p-3 border-b border-gray-200 bg-gray-50/50 flex-shrink-0">
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="font-semibold text-gray-800 text-lg">Messages</h2>
-          <div className="flex items-center space-x-1">
-            <span className="text-sm text-gray-500">{chats.length}</span>
-            <MessageCircle className="w-4 h-4 text-gray-400" />
-          </div>
-        </div>
-        
-        {/* Search Bar */}
-        <div className="relative">
+      <div className="px-3 py-2 md:p-4 border-b border-gray-200 bg-white/95 backdrop-blur-sm flex items-center justify-between sticky top-0 z-10 flex-shrink-0">
+        <div className="relative flex-1 mr-3">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
           <input
             type="text"
@@ -72,6 +63,13 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
             placeholder="Search conversations..."
             className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg bg-white text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-colors text-sm"
           />
+        </div>
+
+        <div className="flex items-center flex-shrink-0">
+          <div className="flex items-center space-x-1">
+            <span className="text-sm text-gray-500">{chats.length}</span>
+            <MessageCircle className="w-4 h-4 text-gray-400" />
+          </div>
         </div>
       </div>
       

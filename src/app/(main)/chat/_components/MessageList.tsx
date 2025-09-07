@@ -89,7 +89,7 @@ const MessageList: React.FC<MessageListProps> = ({
 
   return (
     <div className={`flex-1 overflow-y-auto bg-gradient-to-b from-gray-50/50 to-white ${className}`}>
-      <div className="p-3 space-y-3">
+      <div className="px-2 py-2 md:p-3 space-y-2 md:space-y-3">
         {messages.map((message, index) => {
           const previousMessage = index > 0 ? messages[index - 1] : undefined;
           const showDateDivider = shouldShowDateDivider(message, previousMessage);
@@ -99,8 +99,8 @@ const MessageList: React.FC<MessageListProps> = ({
             <div key={message.id}>
               {/* Date Divider */}
               {showDateDivider && (
-                <div className="flex justify-center my-3">
-                  <div className="bg-gray-200 text-gray-600 px-3 py-1 rounded-full text-xs font-medium">
+                <div className="flex justify-center my-2 md:my-3">
+                  <div className="bg-gray-200 text-gray-600 px-2 py-0.5 md:px-3 md:py-1 rounded-full text-xs font-medium">
                     {formatDate(message.timestamp)}
                   </div>
                 </div>
@@ -110,10 +110,10 @@ const MessageList: React.FC<MessageListProps> = ({
               <div
                 className={`flex ${isOwn ? 'justify-end' : 'justify-start'} animate-in slide-in-from-bottom-2 duration-300`}
               >
-                <div className={`max-w-[85%] sm:max-w-[70%] space-y-1 ${isOwn ? 'items-end' : 'items-start'} flex flex-col`}>
+                <div className={`max-w-[90%] sm:max-w-[85%] md:max-w-[70%] space-y-1 ${isOwn ? 'items-end' : 'items-start'} flex flex-col`}>
                   {/* Message Bubble */}
                   <div
-                    className={`px-3 py-2.5 rounded-2xl font-sans text-sm leading-relaxed shadow-sm relative group ${
+                    className={`px-2.5 py-2 md:px-3 md:py-2.5 rounded-2xl font-sans text-sm leading-relaxed shadow-sm relative group ${
                       isOwn
                         ? 'bg-primary-500 text-white rounded-br-md'
                         : 'bg-white text-gray-800 rounded-bl-md border border-gray-200'
@@ -121,12 +121,12 @@ const MessageList: React.FC<MessageListProps> = ({
                   >
                     {/* Reply Context */}
                     {message.replyTo && (
-                      <div className={`mb-2 p-2 rounded-lg border-l-4 ${
+                      <div className={`mb-1.5 md:mb-2 p-1.5 md:p-2 rounded-lg border-l-4 ${
                         isOwn 
                           ? 'bg-primary-400/30 border-primary-200' 
                           : 'bg-gray-100 border-gray-300'
                       }`}>
-                        <p className={`text-xs ${isOwn ? 'text-primary-100' : 'text-gray-500'} mb-1`}>
+                        <p className={`text-xs ${isOwn ? 'text-primary-100' : 'text-gray-500'} mb-0.5 md:mb-1`}>
                           Replying to:
                         </p>
                         <p className={`text-xs ${isOwn ? 'text-white' : 'text-gray-700'} truncate`}>
@@ -142,26 +142,26 @@ const MessageList: React.FC<MessageListProps> = ({
                       )}
                       
                       {message.messageType === 'image' && message.mediaUrl && (
-                        <div className="space-y-2">
+                        <div className="space-y-1 md:space-y-2">
                           <Image 
                             src={message.mediaUrl} 
                             alt="Shared image"
-                            width={300}
-                            height={200}
+                            width={280}
+                            height={180}
                             className="max-w-full h-auto rounded-lg"
                           />
-                          {message.text && <p>{message.text}</p>}
+                          {message.text && <p className="text-sm">{message.text}</p>}
                         </div>
                       )}
                       
                       {message.messageType === 'voice' && message.mediaUrl && (
-                        <div className="flex items-center space-x-2">
-                          <audio controls className="max-w-full">
+                        <div className="flex items-center space-x-1 md:space-x-2">
+                          <audio controls className="max-w-full text-xs">
                             <source src={message.mediaUrl} type="audio/mpeg" />
                             Your browser does not support the audio element.
                           </audio>
                           {message.duration && (
-                            <span className={`text-xs ${isOwn ? 'text-primary-100' : 'text-gray-500'}`}>
+                            <span className={`text-xs ${isOwn ? 'text-primary-100' : 'text-gray-500'} whitespace-nowrap`}>
                               {Math.floor(message.duration / 60)}:{String(message.duration % 60).padStart(2, '0')}
                             </span>
                           )}
@@ -169,9 +169,9 @@ const MessageList: React.FC<MessageListProps> = ({
                       )}
                       
                       {message.messageType === 'file' && message.mediaUrl && (
-                        <div className="flex items-center space-x-2 p-2 rounded bg-black/10">
-                          <div className="flex-1">
-                            <p className="font-medium">{message.fileName}</p>
+                        <div className="flex items-center space-x-1.5 md:space-x-2 p-1.5 md:p-2 rounded bg-black/10">
+                          <div className="flex-1 min-w-0">
+                            <p className="font-medium text-sm truncate">{message.fileName}</p>
                             {message.fileSize && (
                               <p className={`text-xs ${isOwn ? 'text-primary-100' : 'text-gray-500'}`}>
                                 {(message.fileSize / 1024 / 1024).toFixed(2)} MB
@@ -181,7 +181,7 @@ const MessageList: React.FC<MessageListProps> = ({
                           <a 
                             href={message.mediaUrl} 
                             download={message.fileName}
-                            className={`text-xs underline ${isOwn ? 'text-primary-100' : 'text-primary-600'}`}
+                            className={`text-xs underline whitespace-nowrap ${isOwn ? 'text-primary-100' : 'text-primary-600'}`}
                           >
                             Download
                           </a>
@@ -198,15 +198,15 @@ const MessageList: React.FC<MessageListProps> = ({
 
                     {/* Reactions */}
                     {message.reactions && message.reactions.length > 0 && (
-                      <div className="flex flex-wrap gap-1 mt-2">
+                      <div className="flex flex-wrap gap-0.5 md:gap-1 mt-1 md:mt-2">
                         {message.reactions.map((reaction, idx) => (
                           <div 
                             key={idx}
-                            className={`px-2 py-1 rounded-full text-xs flex items-center space-x-1 ${
+                            className={`px-1.5 py-0.5 md:px-2 md:py-1 rounded-full text-xs flex items-center space-x-1 ${
                               isOwn ? 'bg-primary-400/30' : 'bg-gray-100'
                             }`}
                           >
-                            <span>{reaction.emoji}</span>
+                            <span className="text-xs">{reaction.emoji}</span>
                           </div>
                         ))}
                       </div>
@@ -214,7 +214,7 @@ const MessageList: React.FC<MessageListProps> = ({
                   </div>
 
                   {/* Message Info */}
-                  <div className={`flex items-center space-x-2 px-1 ${isOwn ? 'flex-row-reverse space-x-reverse' : ''}`}>
+                  <div className={`flex items-center space-x-1 md:space-x-2 px-1 md:px-1 ${isOwn ? 'flex-row-reverse space-x-reverse' : ''}`}>
                     <span className="text-xs text-gray-400">
                       {formatTime(message.timestamp)}
                     </span>

@@ -14,6 +14,12 @@ const nextConfig: NextConfig = {
         hostname: 'api.dicebear.com',
         port: '',
         pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'i.pinimg.com',
+        port: '',
+        pathname: '/**',
       }
     ],
     qualities: [75, 90, 100, 95],

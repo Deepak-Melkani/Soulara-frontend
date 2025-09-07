@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { ChatSidebar } from "./_components";
 import { Chat, ChatUser } from "./types";
 import Image from "next/image";
+import { Button } from "@/components/ui/button";
 
 const mockCurrentUser: ChatUser = {
   id: "current-user",
@@ -189,15 +190,13 @@ const ChatLayout: React.FC<ChatLayoutProps> = ({ children }) => {
               </div>
 
               <div className="space-y-2 pt-2">
-                <button
+                <Button
                   onClick={() => router.push("/find-match")}
                   className="bg-primary-500 hover:bg-primary-600 text-white px-6 py-2.5 rounded-full font-medium transition-colors duration-200 text-sm"
                 >
                   Find New Matches
-                </button>
-                <p className="text-xs text-gray-500">
-                  Discover new connections and start meaningful conversations
-                </p>
+                </Button>
+
               </div>
             </div>
           </div>

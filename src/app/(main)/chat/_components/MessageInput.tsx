@@ -3,8 +3,9 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Send, Mic, Plus, Image as ImageIcon, Paperclip } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import EmojiPicker from './EmojiPicker';
 import { WindowWithSpeechRecognition } from '../types';
+import { Textarea } from '@/components/ui/textarea';
+import EmojiPickerComponent from './EmojiPicker';
 
 interface MessageInputProps {
   message: string;
@@ -22,7 +23,7 @@ const MessageInput: React.FC<MessageInputProps> = ({
   message,
   onMessageChange,
   onSendMessage,
-  onVoiceRecord: _onVoiceRecord, // Prefix with underscore to indicate intentionally unused
+  onVoiceRecord: _onVoiceRecord, 
   onImageSelect,
   onFileSelect,
   disabled = false,
@@ -38,7 +39,6 @@ const MessageInput: React.FC<MessageInputProps> = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
 
-  // Close dropdowns when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (emojiPickerRef.current && !emojiPickerRef.current.contains(event.target as Node)) {
@@ -53,11 +53,11 @@ const MessageInput: React.FC<MessageInputProps> = ({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Auto-resize textarea
   useEffect(() => {
     if (textareaRef.current) {
-      textareaRef.current.style.height = 'auto';
-      textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
+      textareaRef.current.style.height = '40px'; // Set smaller minimum height
+      const scrollHeight = Math.min(textareaRef.current.scrollHeight, 70); // Smaller max 60px height
+      textareaRef.current.style.height = `${scrollHeight}px`;
     }
   }, [message]);
 
@@ -144,20 +144,20 @@ const MessageInput: React.FC<MessageInputProps> = ({
   };
 
   return (
-    <div className={`p-4 border-t border-gray-200 bg-white/95 backdrop-blur-sm ${className}`}>
-      <div className="flex items-end space-x-3 relative">
+    <div className={`px-3 py-2 md:p-4 border-t border-gray-200 bg-white/95 backdrop-blur-sm ${className}`}>
+      <div className="flex items-center space-x-2 md:space-x-3 relative">{/* Adjusted spacing for mobile */}
         {/* Attachment Menu */}
         <div className="relative" ref={attachMenuRef}>
           <Button
             variant="ghost"
             size="sm"
             onClick={() => setShowAttachMenu(!showAttachMenu)}
-            className={`h-10 w-10 rounded-full text-gray-500 hover:text-primary-600 hover:bg-primary-50 flex-shrink-0 transition-all duration-200 ${
+            className={`h-7 w-7 md:h-8 md:w-8 rounded-full text-gray-500 hover:text-primary-600 hover:bg-primary-50 flex-shrink-0 transition-all duration-200 ${
               showAttachMenu ? 'rotate-45 bg-primary-50 text-primary-600' : ''
             }`}
             aria-label="Attach file"
           >
-            <Plus className="w-5 h-5" />
+            <Plus className="w-3.5 h-3.5 md:w-4 md:h-4" />
           </Button>
           
           {/* Attachment Dropdown */}
@@ -191,14 +191,14 @@ const MessageInput: React.FC<MessageInputProps> = ({
             variant="ghost"
             size="sm"
             onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-            className="h-10 w-10 rounded-full text-gray-500 hover:text-primary-600 hover:bg-primary-50 flex-shrink-0"
+            className="h-7 w-7 md:h-8 md:w-8 rounded-full text-gray-500 hover:text-primary-600 hover:bg-primary-50 flex-shrink-0"
             aria-label="Add emoji"
           >
-            😊
+            <span className="text-sm md:text-base">😊</span>
           </Button>
           
           {showEmojiPicker && (
-            <EmojiPicker 
+            <EmojiPickerComponent
               onEmojiSelect={handleEmojiSelect}
               onClose={() => setShowEmojiPicker(false)}
             />
@@ -207,29 +207,28 @@ const MessageInput: React.FC<MessageInputProps> = ({
         
         {/* Message Input */}
         <div className="flex-1 relative">
-          <textarea
+           <Textarea
             ref={textareaRef}
             value={message}
             onChange={(e) => onMessageChange(e.target.value)}
             onKeyPress={handleKeyPress}
             placeholder={placeholder}
-            disabled={disabled}
-            rows={1}
-            className="w-full px-4 py-3 pr-12 border border-gray-200 rounded-2xl bg-white text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 font-sans resize-none transition-all duration-200 shadow-sm text-sm max-h-32 overflow-y-auto"
+            disabled={disabled}            
+            className="w-full px-3 py-1.5 pr-8 md:pr-10 border border-gray-200 rounded-2xl bg-white text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 font-sans resize-none transition-all duration-200 shadow-sm text-sm min-h-[32px] max-h-[60px] overflow-y-auto"
           />
-          
+         
           {/* Voice Record Button */}
           <Button
             variant="ghost"
             size="sm"
             onClick={handleVoiceRecord}
             disabled={disabled}
-            className={`absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-primary-600 hover:bg-primary-50 p-2 ${
+            className={`absolute right-1.5 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-primary-600 hover:bg-primary-50 p-1 ${
               isRecording ? 'text-red-500 animate-pulse' : ''
             }`}
             aria-label="Record message"
           >
-            <Mic className="w-4 h-4" />
+            <Mic className="w-3.5 h-3.5" />
           </Button>
         </div>
 
@@ -238,10 +237,10 @@ const MessageInput: React.FC<MessageInputProps> = ({
           onClick={handleSendMessage}
           disabled={!message.trim() || disabled}
           size="sm"
-          className="h-10 w-10 rounded-full bg-primary-500 hover:bg-primary-600 disabled:bg-gray-200 disabled:text-gray-400 text-white shadow-lg transition-all duration-200 hover:shadow-xl hover:scale-105 flex-shrink-0"
+          className="h-8 w-8 rounded-full bg-primary-500 hover:bg-primary-600 disabled:bg-gray-200 disabled:text-gray-400 text-white shadow-lg transition-all duration-200 hover:shadow-xl hover:scale-105 flex-shrink-0"
           aria-label="Send message"
         >
-          <Send className="w-4 h-4" />
+          <Send className="w-3.5 h-3.5" />
         </Button>
       </div>
 
