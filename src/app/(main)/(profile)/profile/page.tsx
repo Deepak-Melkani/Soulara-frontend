@@ -173,7 +173,7 @@ function ProfilePageContent() {
     <>
       <div className="grid grid-cols-1 lg:grid-cols-[288px_1fr_288px] gap-4">
         {/* Column 1: Profile Sidebar */}
-        <div className="order-2 lg:order-1 ">
+        <div className="order-1lg:order-1 ">
           <ProfileSidebar
             profile={user}
             onEdit={handleProfileEdit}
@@ -184,7 +184,7 @@ function ProfilePageContent() {
         </div>
 
         {/* Column 2: Main Content */}
-        <div className="order-1 lg:order-2">
+        <div className="order-2 lg:order-2">
           <ClientOnly fallback={
             <div className="space-y-4 lg:space-y-6">
               {Array.from({ length: 4 }).map((_, i) => (
@@ -245,7 +245,6 @@ function ProfilePageContent() {
         />
       </ClientOnly>
 
-      {/* Edit Profile Modal */}
       {user && (
         <EditProfileModal
           isOpen={isEditModalOpen}
@@ -264,69 +263,9 @@ export default function ProfilePage() {
     <div className="space-y-6">
       
 
-      <Suspense fallback={<ProfilePageSkeleton />}>
+      <Suspense fallback={<ProfileLoading />}>
         <ProfilePageContent />
       </Suspense>
-    </div>
-  )
-}
-
-function ProfilePageSkeleton() {
-  return (
-    <div className="grid grid-cols-1 lg:grid-cols-[288px_1fr_288px] gap-4">
-      {/* Profile Sidebar Skeleton */}
-      <div className="order-2 lg:order-1">
-        <div className="w-full lg:w-72 p-4 lg:p-6 border border-gray-200 rounded-lg">
-          <div className="flex flex-col items-center mb-4 lg:mb-6">
-            <Skeleton className="w-24 h-24 lg:w-32 lg:h-32 rounded-full" />
-            <Skeleton className="h-5 lg:h-6 w-32 lg:w-40 mt-3 lg:mt-4" />
-          </div>
-          <div className="space-y-3 lg:space-y-4">
-            <div className="grid grid-cols-2 gap-3 lg:gap-4">
-              <Skeleton className="h-12 lg:h-16" />
-              <Skeleton className="h-12 lg:h-16" />
-            </div>
-            <Skeleton className="h-12 lg:h-16" />
-            <Skeleton className="h-16 lg:h-20" />
-            <Skeleton className="h-8 lg:h-10 w-full" />
-          </div>
-        </div>
-      </div>
-
-      {/* Main Content Skeleton */}
-      <div className="order-1 lg:order-2 space-y-4 lg:space-y-6">
-        {Array.from({ length: 4 }).map((_, i) => (
-          <div key={i} className="border border-gray-200 rounded-lg p-4 lg:p-6">
-            <Skeleton className="h-5 lg:h-6 w-32 lg:w-48 mb-3 lg:mb-4" />
-            <div className="space-y-3 lg:space-y-4">
-              <Skeleton className="h-8 lg:h-10 w-full" />
-              <Skeleton className="h-8 lg:h-10 w-full" />
-              <div className="grid grid-cols-2 gap-3 lg:gap-4">
-                <Skeleton className="h-8 lg:h-10" />
-                <Skeleton className="h-8 lg:h-10" />
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* Notifications Panel Skeleton */}
-      <div className="order-3 hidden lg:block">
-        <div className="w-full lg:w-72 p-4 lg:p-6 border border-gray-200 rounded-lg">
-          <Skeleton className="h-5 lg:h-6 w-28 lg:w-32 mb-3 lg:mb-4" />
-          <div className="space-y-2 lg:space-y-3">
-            {Array.from({ length: 5 }).map((_, i) => (
-              <div key={i} className="flex items-start space-x-2 lg:space-x-3">
-                <Skeleton className="w-8 h-8 lg:w-10 lg:h-10 rounded-full" />
-                <div className="flex-1">
-                  <Skeleton className="h-3 lg:h-4 w-3/4 mb-1 lg:mb-2" />
-                  <Skeleton className="h-2 lg:h-3 w-full" />
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
     </div>
   )
 }

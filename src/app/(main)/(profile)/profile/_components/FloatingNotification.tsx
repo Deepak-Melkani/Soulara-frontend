@@ -22,7 +22,7 @@ export default function FloatingNotification({
 
   return (
     <div suppressHydrationWarning>
-      {/* Desktop Floating Button */}
+      
       <div className="fixed bottom-6 right-6 z-50 hidden lg:block">
         <Sheet open={isOpen} onOpenChange={setIsOpen}>
           <SheetTrigger asChild>
@@ -57,7 +57,7 @@ export default function FloatingNotification({
       </div>
 
       {/* Mobile Floating Button */}
-      <div className="fixed top-4 right-4 z-50 lg:hidden">
+      <div className="fixed bottom-4 right-4 z-50 lg:hidden">
         <Sheet open={isOpen} onOpenChange={setIsOpen}>
           <SheetTrigger asChild>
             <Button

@@ -1,381 +1,220 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useParams, useRouter } from 'next/navigation';
-import { ChatHeader, MessageList, MessageInput } from '../_components';
-import { ChatRoom, ChatUser, Message } from '../types';
+import { useParams } from 'next/navigation';
+import { useAuth } from '@/context/AuthContext';
+import { useSocket } from '@/context/SocketContext';
+import { useChatRoom, useRealtimeMessages, useTypingIndicator, useOnlineStatus } from '@/hooks/useChat';
+import ChatHeader from '../_components/ChatHeader';
+import MessageList from '../_components/MessageList';
+import MessageInput from '../_components/MessageInput';
+import ConnectionStatus from '@/components/ConnectionStatus';
+import { Message, ChatUser } from '../types';
 
-// Mock current user
-const mockCurrentUser: ChatUser = {
-  id: 'current-user',
-  firstName: 'John',
-  lastName: 'Doe',
-  isOnline: true,
-};
+interface ChatPageProps {}
 
-// Mock chat rooms data
-const mockChatRooms: { [key: string]: ChatRoom } = {
-  '1': {
-    id: '1',
-    roomId: 'room-1',
-    participants: [
-      mockCurrentUser,
-      {
-        id: 'user-1',
-        firstName: 'Sarah',
-        lastName: 'Chen',
-        profilePicture: 'https://i.pinimg.com/736x/79/43/be/7943be8d78be7e10f5c4f270b386755f.jpg',
-        isOnline: true,
-      }
-    ],
-    messages: [
-      {
-        id: '1',
-        text: 'Hey cutie, what are you up to? 😉',
-        messageType: 'text',
-        senderId: 'user-1',
-        timestamp: new Date(Date.now() - 3600000),
-        isOwn: false,
-        status: 'read',
-      },
-      {
-        id: '2',
-        text: 'Just waiting for your message… looks like my wish came true 😘',
-        messageType: 'text',
-        senderId: 'current-user',
-        timestamp: new Date(Date.now() - 3500000),
-        isOwn: true,
-        status: 'read',
-      },
-      {
-        id: '3',
-        text: 'You might just be my favorite notification today 😏',
-        messageType: 'text',
-        senderId: 'user-1',
-        timestamp: new Date(Date.now() - 1800000),
-        isOwn: false,
-        status: 'delivered',
-      },
-    ],
-    isActive: true,
-    roomType: 'direct',
-    createdAt: new Date(Date.now() - 86400000),
-    updatedAt: new Date(Date.now() - 1800000),
-  },
-  '2': {
-    id: '2',
-    roomId: 'room-2',
-    participants: [
-      mockCurrentUser,
-      {
-        id: 'user-2',
-        firstName: 'Mike',
-        lastName: 'Rivera',
-        profilePicture: 'https://i.pinimg.com/736x/ee/3c/70/ee3c70861f89fbabf2132e544bee7d9a.jpg',
-        isOnline: false,
-      }
-    ],
-    messages: [
-      {
-        id: '4',
-        text: 'You know… I cant stop thinking about our chat earlier 👀',
-        messageType: 'text',
-        senderId: 'user-2',
-        timestamp: new Date(Date.now() - 7200000),
-        isOwn: false,
-        status: 'read',
-      },
-      {
-        id: '5',
-        text: 'Good, because I was hoping I was on your mind 😏',
-        messageType: 'text',
-        senderId: 'current-user',
-        timestamp: new Date(Date.now() - 7100000),
-        isOwn: true,
-        status: 'read',
-      },
-      {
-        id: '6',
-        text: 'Careful, you are kinda addictive 🔥',
-        messageType: 'text',
-        senderId: 'user-2',
-        timestamp: new Date(Date.now() - 3600000),
-        isOwn: false,
-        status: 'delivered',
-      },
-    ],
-    isActive: true,
-    roomType: 'direct',
-    createdAt: new Date(Date.now() - 172800000),
-    updatedAt: new Date(Date.now() - 3600000),
-  },
-  '3': {
-    id: '3',
-    roomId: 'room-3',
-    participants: [
-      mockCurrentUser,
-      {
-        id: 'user-3',
-        firstName: 'Luna',
-        lastName: 'Starweaver',
-        profilePicture: 'https://i.pinimg.com/736x/51/2f/03/512f03d5b6a387f7e468700dc3aa87fa.jpg',
-        isOnline: true,
-      }
-    ],
-    messages: [
-      {
-        id: '7',
-        text: 'Talking to you feels way more fun than anything else I should be doing right now 😘',
-        messageType: 'text',
-        senderId: 'user-3',
-        timestamp: new Date(Date.now() - 1800000),
-        isOwn: false,
-        status: 'read',
-      },
-      {
-        id: '8',
-        text: "You've officially become my favorite distraction 💕",
-        messageType: 'text',
-        senderId: 'user-3',
-        timestamp: new Date(Date.now() - 900000),
-        isOwn: false,
-        status: 'sent',
-      },
-    ],
-    isActive: true,
-    roomType: 'direct',
-    createdAt: new Date(Date.now() - 259200000),
-    updatedAt: new Date(Date.now() - 900000),
-  },
-};
-
-const ChatRoomPage: React.FC = () => {
+const ChatPage: React.FC<ChatPageProps> = () => {
   const params = useParams();
-  const router = useRouter();
-  const chatId = params.id as string;
+  const { user } = useAuth();
+  const { sendMessage, isConnected } = useSocket();
   
-  const [chatRoom, setChatRoom] = useState<ChatRoom | null>(null);
+  // Local state
   const [message, setMessage] = useState('');
-  const [isLoading, setIsLoading] = useState(true);
+  const [chatUser, setChatUser] = useState<ChatUser | null>(null);
+  const [showMobileBack, setShowMobileBack] = useState(false);
+  
+  const chatUserId = params.id as string;
+  
+  // Generate room ID from user IDs (ensure consistent ordering)
+  const roomId = user && chatUserId 
+    ? [user._id, chatUserId].sort().join('-')
+    : null;
 
-  // Load chat room data
+  // Socket hooks
+  const { isInRoom } = useChatRoom(roomId);
+  const { 
+    messages, 
+    addMessage, 
+    updateMessageStatus,
+    setMessages 
+  } = useRealtimeMessages(roomId, user?._id || '');
+  
+  const { 
+    typingUsers, 
+    handleTyping, 
+    handleStopTyping 
+  } = useTypingIndicator(roomId || '');
+  const { onlineUsers } = useOnlineStatus();
+
+  // Check if mobile view
   useEffect(() => {
-    const loadChatRoom = () => {
-      const room = mockChatRooms[chatId];
-      if (room) {
-        // Mark all messages as read when opening the chat
-        const updatedRoom = {
-          ...room,
-          messages: room.messages.map(msg => ({
-            ...msg,
-            status: msg.isOwn ? msg.status : 'read' // Only mark other user's messages as read
-          }))
-        };
-        setChatRoom(updatedRoom);
-      }
-      setIsLoading(false);
+    const checkMobile = () => {
+      setShowMobileBack(window.innerWidth < 768);
     };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
-    if (chatId) {
-      loadChatRoom();
-    }
-  }, [chatId]);
-
-  // Mark messages as read when they come into view (additional effect for real-time)
+  // Load chat user data (mock for now - replace with API call)
   useEffect(() => {
-    if (chatRoom) {
-      const hasUnreadMessages = chatRoom.messages.some(msg => 
-        !msg.isOwn && msg.status !== 'read'
-      );
-      
-      if (hasUnreadMessages) {
-        console.log(`Marking messages in chat ${chatId} as read`); // Debug log
-        // Simulate API call to mark messages as read
-        setTimeout(() => {
-          setChatRoom(prev => prev ? {
-            ...prev,
-            messages: prev.messages.map(msg => ({
-              ...msg,
-              status: msg.isOwn ? msg.status : 'read'
-            }))
-          } : null);
-        }, 500); // Small delay to simulate API call
-      }
+    if (chatUserId) {
+      // TODO: Replace with actual API call
+      const mockUser: ChatUser = {
+        id: chatUserId,
+        firstName: 'Sarah',
+        lastName: 'Johnson',
+        profilePicture: '/assets/auth/login.png',
+        isOnline: onlineUsers.includes(chatUserId),
+        lastSeen: new Date()
+      };
+      setChatUser(mockUser);
     }
-  }, [chatId, chatRoom?.messages.length, chatRoom]); // Added chatRoom to dependencies
+  }, [chatUserId, onlineUsers]);
 
-  const handleSendMessage = () => {
-    if (!message.trim() || !chatRoom) return;
+  // Load chat history (mock for now - replace with API call)
+  useEffect(() => {
+    if (roomId && user) {
+      // TODO: Replace with actual API call to load chat history
+      const mockMessages: Message[] = [
+        {
+          id: '1',
+          text: 'Hey there! How are you doing?',
+          messageType: 'text',
+          senderId: chatUserId,
+          timestamp: new Date(Date.now() - 60000),
+          status: 'read',
+          isOwn: false
+        },
+        {
+          id: '2',
+          text: 'Hi! I\'m doing great, thanks for asking! How about you?',
+          messageType: 'text',
+          senderId: user._id,
+          timestamp: new Date(Date.now() - 30000),
+          status: 'read',
+          isOwn: true
+        }
+      ];
+      setMessages(mockMessages);
+    }
+  }, [roomId, user, setMessages, chatUserId]);
 
+  const handleSendMessage = async () => {
+    if (!message.trim() || !user || !chatUserId || !roomId || !isConnected) {
+      return;
+    }
+
+    // Create the message object
     const newMessage: Message = {
       id: Date.now().toString(),
       text: message.trim(),
       messageType: 'text',
-      senderId: mockCurrentUser.id,
+      senderId: user._id,
       timestamp: new Date(),
-      isOwn: true,
       status: 'sending',
+      isOwn: true
     };
 
-    // Update local state immediately
-    setChatRoom(prev => prev ? {
-      ...prev,
-      messages: [...prev.messages, newMessage]
-    } : null);
-
+    // Add to local state immediately for optimistic UI
+    addMessage(newMessage);
+    
+    // Clear input
     setMessage('');
+    
+    // Stop typing
+    handleStopTyping();
 
-    // Simulate API call and response
-    setTimeout(() => {
-      // Update message status to sent
-      setChatRoom(prev => prev ? {
-        ...prev,
-        messages: prev.messages.map(msg => 
-          msg.id === newMessage.id ? { ...msg, status: 'sent' } : msg
-        )
-      } : null);
-
-      // Simulate AI response
-      setTimeout(() => {
-        const responses = [
-          "You have such a beautiful vibe, I feel drawn to you ✨",
-          "I'm really glad we matched, it feels special 💫",
-          "Your words make me smile more than you know 😊",
-          "Thank you for sharing that, it really shows your genuine side 💕",
-          "I can already feel a spark between us 🔥"
-        ];
-        
-        const responseMessage: Message = {
-          id: (Date.now() + 1).toString(),
-          text: responses[Math.floor(Math.random() * responses.length)],
-          messageType: 'text',
-          senderId: getOtherUser()?.id || '',
-          timestamp: new Date(),
-          isOwn: false,
-          status: 'sent',
-        };
-
-        setChatRoom(prev => prev ? {
-          ...prev,
-          messages: [...prev.messages, responseMessage]
-        } : null);
-      }, 1000 + Math.random() * 2000);
-    }, 500);
+    try {
+      // Send message using socket context
+      sendMessage(roomId, message.trim(), 'text');
+      
+      // Update status to sent
+      updateMessageStatus(newMessage.id, { status: 'sent' });
+    } catch (error) {
+      console.error('Failed to send message:', error);
+      updateMessageStatus(newMessage.id, { status: 'failed' });
+    }
   };
 
-  const handleVoiceRecord = (audioBlob: Blob) => {
-    // TODO: Implement voice message upload
-    console.log('Voice message recorded:', audioBlob);
+  const handleVoiceRecord = async (audioBlob: Blob) => {
+    console.log('Voice recording received:', audioBlob);
+    // TODO: Implement voice message sending
   };
 
-  const handleImageSelect = (file: File) => {
-    // TODO: Implement image upload
+  const handleImageSelect = async (file: File) => {
     console.log('Image selected:', file);
+    // TODO: Implement image message sending
   };
 
-  const handleFileSelect = (file: File) => {
-    // TODO: Implement file upload
+  const handleFileSelect = async (file: File) => {
     console.log('File selected:', file);
+    // TODO: Implement file message sending
   };
 
   const handleBack = () => {
-    // On mobile, go back to chat list, on desktop, close the chat
-    router.push('/chat');
+    window.history.back();
   };
 
-  const handleCall = () => {
-    // TODO: Implement voice call
-    console.log('Voice call initiated');
-    alert('Voice call feature is not implemented yet.');
-  };
-
-  const handleVideoCall = () => {
-    // TODO: Implement video call
-    console.log('Video call initiated');
-    alert('Voice call feature is not implemented yet.');
-  };
-
-  const handleMoreOptions = () => {
-    // TODO: Implement more options menu
-    console.log('More options clicked');
-    alert('More options feature is not implemented yet.');
-  };
-
-  const getOtherUser = (): ChatUser | undefined => {
-    return chatRoom?.participants.find(p => p.id !== mockCurrentUser.id);
-  };
-
-  if (isLoading) {
+  if (!user || !chatUser) {
     return (
-      <div className="flex items-center justify-center h-full">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500"></div>
-      </div>
-    );
-  }
-
-  if (!chatRoom) {
-    return (
-      <div className="flex flex-col items-center justify-center h-full space-y-4 p-8">
-        <h2 className="text-xl font-semibold text-gray-800">Chat not found</h2>
-        <p className="text-gray-600 text-center">This conversation might have been deleted or does not exist.</p>
-        <button
-          onClick={handleBack}
-          className="bg-primary-500 hover:bg-primary-600 text-white px-6 py-2 rounded-lg transition-colors"
-        >
-          Back to Chats
-        </button>
-      </div>
-    );
-  }
-
-  const otherUser = getOtherUser();
-
-  if (!otherUser) {
-    return (
-      <div className="flex flex-col items-center justify-center h-full space-y-4 p-8">
-        <h2 className="text-xl font-semibold text-gray-800">Invalid chat room</h2>
-        <p className="text-gray-600 text-center">Unable to load chat participants.</p>
-        <button
-          onClick={handleBack}
-          className="bg-primary-500 hover:bg-primary-600 text-white px-6 py-2 rounded-lg transition-colors"
-        >
-          Back to Chats
-        </button>
+      <div className="flex items-center justify-center h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading chat...</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col h-full bg-white min-h-0 overflow-hidden">
-      {/* Chat Header */}
+    <div className="flex flex-col h-screen bg-gray-50">
+      
+      {!isConnected && (
+        <div className="bg-yellow-100 border-b border-yellow-200 px-4 py-2">
+          <ConnectionStatus />
+        </div>
+      )}
+
       <ChatHeader
-        user={otherUser}
+        user={chatUser}
         onBack={handleBack}
-        onCall={handleCall}
-        onVideoCall={handleVideoCall}
-        onMoreOptions={handleMoreOptions}
-        showBackButton={true}
+        showBackButton={showMobileBack}
+        isConnected={isConnected}
+        typingUsers={typingUsers}
+        onVideoCall={() => console.log('Video call')}
+        onMoreOptions={() => console.log('More options')}
       />
 
-      {/* Messages */}
-      <MessageList
-        messages={chatRoom.messages}
-        currentUserId={mockCurrentUser.id}
-        className="flex-1 min-h-0"
-      />
+      <div className="flex-1 overflow-hidden">
+        <MessageList
+          messages={messages}
+          currentUserId={user._id}
+          className="h-full"
+        />
+      </div>
 
-      {/* Message Input */}
-      <MessageInput
-        message={message}
-        onMessageChange={setMessage}
-        onSendMessage={handleSendMessage}
-        onVoiceRecord={handleVoiceRecord}
-        onImageSelect={handleImageSelect}
-        onFileSelect={handleFileSelect}
-        placeholder={`Message ${otherUser.firstName}...`}
-      />
+      <div className="border-t border-gray-200 bg-white p-3">
+        <MessageInput
+          message={message}
+          onMessageChange={setMessage}
+          onSendMessage={handleSendMessage}
+          onVoiceRecord={handleVoiceRecord}
+          onImageSelect={handleImageSelect}
+          onFileSelect={handleFileSelect}
+          onStartTyping={handleTyping}
+          onStopTyping={handleStopTyping}
+          disabled={!isConnected}
+          placeholder={
+            isConnected 
+              ? "Type a message..." 
+              : "Connecting..."
+          }
+        />
+      </div>
     </div>
   );
 };
 
-export default ChatRoomPage;
+export default ChatPage;

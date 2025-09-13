@@ -3,6 +3,7 @@ import { Roboto, Playfair_Display, Plus_Jakarta_Sans, Lora, IBM_Plex_Mono, Marce
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { AuthProvider } from "@/context/AuthContext";
+import { SocketProvider } from "@/context/SocketContext";
 import { TokenManager } from "@/components/TokenManager";
 import { Toaster } from "@/components/ui/sonner"
 
@@ -186,11 +187,13 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <AuthProvider>
-            <TokenManager />
-            <div id="app-root" className="min-h-screen">
-              {children}
-              <Toaster richColors/>
-            </div>
+            <SocketProvider>
+              <TokenManager />
+              <div id="app-root" className="min-h-screen">
+                {children}
+                <Toaster richColors/>
+              </div>
+            </SocketProvider>
           </AuthProvider>
         </ThemeProvider>
         <script

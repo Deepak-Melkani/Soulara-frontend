@@ -13,6 +13,8 @@ interface ChatHeaderProps {
   onVideoCall?: () => void;
   onMoreOptions?: () => void;
   showBackButton?: boolean;
+  isConnected?: boolean;
+  typingUsers?: string[];
 }
 
 const ChatHeader: React.FC<ChatHeaderProps> = ({
@@ -20,7 +22,9 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({
   onBack,
   onVideoCall,
   onMoreOptions,
-  showBackButton = false
+  showBackButton = false,
+  isConnected = false,
+  typingUsers = []
 }) => {
   return (
     <div className="px-3 py-2 md:p-[12.7px] border-b border-gray-200 bg-white/95 backdrop-blur-sm flex items-center justify-between sticky top-0 z-10">
@@ -65,8 +69,14 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({
             {user.firstName} {user.lastName}
           </h3>
           <p className="text-xs md:text-sm text-gray-500 truncate">
-            {user.isOnline ? (
-              <span className="text-green-500">Online now</span>
+            {typingUsers.length > 0 ? (
+              <span className="text-blue-500">
+                {typingUsers.length === 1 ? 'Typing...' : `${typingUsers.length} people typing...`}
+              </span>
+            ) : user.isOnline ? (
+              <span className="text-green-500">
+                {isConnected ? 'Online now' : 'Online (disconnected)'}
+              </span>
             ) : (
               'Last seen recently'
             )}

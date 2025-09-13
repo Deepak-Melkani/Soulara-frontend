@@ -1,29 +1,23 @@
 "use client"
 
 import React, { useState } from 'react'
+import Link from 'next/link'
 import { cn } from '@/lib/utils'
 
 interface NavbarItemProps {
   icon: React.ReactNode
   label: string
   onClick?: () => void
+  href?: string
   badge?: string | number
   className?: string
 }
 
-const NavbarItem = ({ icon, label, onClick, badge, className }: NavbarItemProps) => {
+const NavbarItem = ({ icon, label, onClick, href, badge, className }: NavbarItemProps) => {
   const [isHovered, setIsHovered] = useState(false)
 
-  return (
-    <button
-      onClick={onClick}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-      className={cn(
-        "relative cursor-pointer flex flex-col items-center justify-center px-3 py-2 min-w-[60px] rounded-lg transition-all duration-200 hover:bg-accent group overflow-hidden",
-        className
-      )}
-    >
+  const content = (
+    <>
       <div className="relative mb-1">
         {icon}
         {badge && (
@@ -50,6 +44,35 @@ const NavbarItem = ({ icon, label, onClick, badge, className }: NavbarItemProps)
           }}
         />
       </div>
+    </>
+  )
+
+  const baseClassName = cn(
+    "relative cursor-pointer flex flex-col items-center justify-center px-3 py-2 min-w-[60px] rounded-lg transition-all duration-200 hover:bg-accent group overflow-hidden",
+    className
+  )
+
+  if (href) {
+    return (
+      <Link 
+        href={href}
+        className={baseClassName}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+      >
+        {content}
+      </Link>
+    )
+  }
+
+  return (
+    <button
+      onClick={onClick}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      className={baseClassName}
+    >
+      {content}
     </button>
   )
 }

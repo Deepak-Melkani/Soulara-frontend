@@ -17,6 +17,8 @@ interface MessageInputProps {
   disabled?: boolean;
   placeholder?: string;
   className?: string;
+  onStartTyping?: () => void;
+  onStopTyping?: () => void;
 }
 
 const MessageInput: React.FC<MessageInputProps> = ({
@@ -28,16 +30,20 @@ const MessageInput: React.FC<MessageInputProps> = ({
   onFileSelect,
   disabled = false,
   placeholder = "Type a message...",
-  className = ""
+  className = "",
+  onStartTyping,
+  onStopTyping
 }) => {
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [showAttachMenu, setShowAttachMenu] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
+  const [isTyping, setIsTyping] = useState(false);
   const emojiPickerRef = useRef<HTMLDivElement>(null);
   const attachMenuRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
+  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -61,6 +67,43 @@ const MessageInput: React.FC<MessageInputProps> = ({
     }
   }, [message]);
 
+  // Handle typing indicators
+  const handleMessageChange = (newMessage: string) => {
+    onMessageChange(newMessage);
+    
+    if (onStartTyping && onStopTyping) {
+      if (newMessage.trim() && !isTyping) {
+        setIsTyping(true);
+        onStartTyping();
+      }
+      
+      // Clear existing timeout
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+      }
+      
+      // Set new timeout to stop typing indicator
+      if (newMessage.trim()) {
+        typingTimeoutRef.current = setTimeout(() => {
+          setIsTyping(false);
+          onStopTyping();
+        }, 1500); // Stop typing after 1.5 seconds of inactivity
+      } else if (isTyping) {
+        setIsTyping(false);
+        onStopTyping();
+      }
+    }
+  };
+
+  // Cleanup typing timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+      }
+    };
+  }, []);
+
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
@@ -75,7 +118,7 @@ const MessageInput: React.FC<MessageInputProps> = ({
   };
 
   const handleEmojiSelect = (emoji: string) => {
-    onMessageChange(message + emoji);
+    handleMessageChange(message + emoji);
     setShowEmojiPicker(false);
     textareaRef.current?.focus();
   };
@@ -103,7 +146,7 @@ const MessageInput: React.FC<MessageInputProps> = ({
 
     recognition.onresult = (event) => {
       const transcript = event.results[0][0].transcript;
-      onMessageChange(message ? message + ' ' + transcript : transcript);
+      handleMessageChange(message ? message + ' ' + transcript : transcript);
       setIsRecording(false);
       
       
@@ -218,7 +261,7 @@ const MessageInput: React.FC<MessageInputProps> = ({
            <Textarea
             ref={textareaRef}
             value={message}
-            onChange={(e) => onMessageChange(e.target.value)}
+            onChange={(e) => handleMessageChange(e.target.value)}
             onKeyPress={handleKeyPress}
             placeholder={placeholder}
             disabled={disabled}            

@@ -23,6 +23,10 @@ export interface Message {
   }[];
   isEdited?: boolean;
   editedAt?: Date;
+  image?: {
+    url: string;
+    publicId: string;
+  };
 }
 
 export interface ChatUser {
