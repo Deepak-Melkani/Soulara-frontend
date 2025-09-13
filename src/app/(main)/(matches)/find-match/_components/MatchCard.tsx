@@ -14,6 +14,7 @@ const MatchCard: React.FC<MatchCardProps> = ({
   user,
   onLike,
   onPass,
+  onUserClick,
   className,
 }) => {
   const initials = `${user.firstName[0]}${user.lastName[0]}`.toUpperCase();
@@ -30,13 +31,24 @@ const MatchCard: React.FC<MatchCardProps> = ({
     onPass?.(user._id);
   };
 
+  const handleCardClick = () => {
+    onUserClick?.(user._id);
+  };
+
+  const handleButtonClick = (e: React.MouseEvent, action: () => void) => {
+    e.stopPropagation(); // Prevent card click when button is clicked
+    action();
+  };
+
   return (
     <div
       className={cn(
         "bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden",
         "transition-all duration-300 hover:shadow-xl hover:-translate-y-1",
+        "cursor-pointer",
         className
       )}
+      onClick={handleCardClick}
     >
       <div className="relative h-64">
         <Avatar className="w-full h-full rounded-none">
@@ -123,7 +135,7 @@ const MatchCard: React.FC<MatchCardProps> = ({
           <Button
             variant="outline"
             size="lg"
-            onClick={handlePass}
+            onClick={(e) => handleButtonClick(e, handlePass)}
             className="flex-1 border-gray-300 text-gray-600 hover:border-red-300 hover:bg-red-50 hover:text-red-600 transition-colors"
           >
             <X className="w-5 h-5 mr-2" />
@@ -131,7 +143,7 @@ const MatchCard: React.FC<MatchCardProps> = ({
           </Button>
           <Button
             size="lg"
-            onClick={handleLike}
+            onClick={(e) => handleButtonClick(e, handleLike)}
             className="flex-1 bg-rose-500 hover:bg-rose-600 text-white shadow-md hover:shadow-lg transition-all"
           >
             <Heart className="w-5 h-5 mr-2" />

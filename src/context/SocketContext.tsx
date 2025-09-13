@@ -176,27 +176,40 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   }, [socket])
 
   const sendMessage = useCallback((roomId: string, message: string, messageType: 'text' | 'image' = 'text') => {
-    if (socket?.connected) {
+    if (socket?.connected && user?._id) {
       const messageData = {
         roomId,
-        text: message,
+        senderId: user._id,
+        message: message,
         messageType
       }
       console.log('Sending message via socket:', messageData)
-      // Note: We'll still use HTTP API for sending messages, this is for real-time updates
+      socket.emit('sendMessage', messageData)
     }
-  }, [socket])
+  }, [socket, user?._id])
 
   // Typing indicators
   const startTyping = useCallback((roomId: string) => {
     if (socket?.connected && user?._id) {
+      console.log('Emitting typing event:', { roomId, userId: user._id })
       socket.emit('typing', { roomId, userId: user._id })
+    } else {
+      console.log('Cannot emit typing - socket not connected or no user:', { 
+        connected: socket?.connected, 
+        userId: user?._id 
+      })
     }
   }, [socket, user?._id])
 
   const stopTyping = useCallback((roomId: string) => {
     if (socket?.connected && user?._id) {
+      console.log('Emitting stopTyping event:', { roomId, userId: user._id })
       socket.emit('stopTyping', { roomId, userId: user._id })
+    } else {
+      console.log('Cannot emit stopTyping - socket not connected or no user:', { 
+        connected: socket?.connected, 
+        userId: user?._id 
+      })
     }
   }, [socket, user?._id])
 

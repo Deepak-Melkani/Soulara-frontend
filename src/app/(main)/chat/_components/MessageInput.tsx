@@ -73,6 +73,7 @@ const MessageInput: React.FC<MessageInputProps> = ({
     
     if (onStartTyping && onStopTyping) {
       if (newMessage.trim() && !isTyping) {
+        console.log('MessageInput: Starting typing indicator');
         setIsTyping(true);
         onStartTyping();
       }
@@ -85,13 +86,17 @@ const MessageInput: React.FC<MessageInputProps> = ({
       // Set new timeout to stop typing indicator
       if (newMessage.trim()) {
         typingTimeoutRef.current = setTimeout(() => {
+          console.log('MessageInput: Stopping typing indicator after timeout');
           setIsTyping(false);
           onStopTyping();
         }, 1500); // Stop typing after 1.5 seconds of inactivity
       } else if (isTyping) {
+        console.log('MessageInput: Stopping typing indicator (message empty)');
         setIsTyping(false);
         onStopTyping();
       }
+    } else {
+      console.log('MessageInput: No typing handlers provided');
     }
   };
 

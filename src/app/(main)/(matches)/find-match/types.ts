@@ -21,5 +21,6 @@ export interface MatchCardProps {
   user: MatchUser;
   onLike?: (userId: string) => void;
   onPass?: (userId: string) => void;
+  onUserClick?: (userId: string) => void;
   className?: string;
 }

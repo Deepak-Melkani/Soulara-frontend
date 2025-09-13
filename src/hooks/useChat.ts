@@ -123,14 +123,20 @@ export const useTypingIndicator = (roomId: string | null) => {
   useEffect(() => {
     if (!roomId) return
 
+    console.log('Setting up typing listeners for room:', roomId)
+
     const unsubscribeTyping = onUserTyping((data) => {
+      console.log('Received typing event:', data)
       if (data.roomId === roomId) {
+        console.log(`User ${data.userId} is typing in room ${data.roomId}`)
         setTypingUsers(prev => new Set([...prev, data.userId]))
       }
     })
 
     const unsubscribeStoppedTyping = onUserStoppedTyping((data) => {
+      console.log('Received stopped typing event:', data)
       if (data.roomId === roomId) {
+        console.log(`User ${data.userId} stopped typing in room ${data.roomId}`)
         setTypingUsers(prev => {
           const newSet = new Set(prev)
           newSet.delete(data.userId)
@@ -140,6 +146,7 @@ export const useTypingIndicator = (roomId: string | null) => {
     })
 
     return () => {
+      console.log('Cleaning up typing listeners for room:', roomId)
       unsubscribeTyping()
       unsubscribeStoppedTyping()
     }
@@ -149,7 +156,10 @@ export const useTypingIndicator = (roomId: string | null) => {
   const handleTyping = useCallback(() => {
     if (!roomId) return
 
+    console.log('handleTyping called for room:', roomId)
+
     if (!isTyping.current) {
+      console.log('Starting typing indicator')
       startTyping(roomId)
       isTyping.current = true
     }
@@ -162,6 +172,7 @@ export const useTypingIndicator = (roomId: string | null) => {
     // Set new timeout to stop typing after 2 seconds
     typingTimeout.current = setTimeout(() => {
       if (isTyping.current) {
+        console.log('Auto-stopping typing indicator after timeout')
         stopTyping(roomId)
         isTyping.current = false
       }
@@ -170,6 +181,8 @@ export const useTypingIndicator = (roomId: string | null) => {
 
   const handleStopTyping = useCallback(() => {
     if (!roomId || !isTyping.current) return
+
+    console.log('handleStopTyping called for room:', roomId)
 
     if (typingTimeout.current) {
       clearTimeout(typingTimeout.current)

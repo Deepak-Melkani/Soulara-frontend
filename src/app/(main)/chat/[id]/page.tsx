@@ -5,46 +5,141 @@ import { useParams } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { useSocket } from '@/context/SocketContext';
 import { useChatRoom, useRealtimeMessages, useTypingIndicator, useOnlineStatus } from '@/hooks/useChat';
+import { useChatData } from '@/hooks/useChatData';
 import ChatHeader from '../_components/ChatHeader';
 import MessageList from '../_components/MessageList';
 import MessageInput from '../_components/MessageInput';
 import ConnectionStatus from '@/components/ConnectionStatus';
 import { Message, ChatUser } from '../types';
+import { Loader2 } from 'lucide-react';
 
 interface ChatPageProps {}
 
 const ChatPage: React.FC<ChatPageProps> = () => {
   const params = useParams();
   const { user } = useAuth();
-  const { sendMessage, isConnected } = useSocket();
+  const { sendMessage, isConnected, onNewMessage, joinRoom, leaveRoom } = useSocket();
+  const { fetchRoomWithMessages, sendMessage: sendApiMessage, chats } = useChatData();
   
   // Local state
   const [message, setMessage] = useState('');
   const [chatUser, setChatUser] = useState<ChatUser | null>(null);
   const [showMobileBack, setShowMobileBack] = useState(false);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [loading, setLoading] = useState(true);
   
-  const chatUserId = params.id as string;
-  
-  // Generate room ID from user IDs (ensure consistent ordering)
-  const roomId = user && chatUserId 
-    ? [user._id, chatUserId].sort().join('-')
-    : null;
+  const roomId = params.id as string; // This is now the actual room ID from our API
 
   // Socket hooks
   const { isInRoom } = useChatRoom(roomId);
-  const { 
-    messages, 
-    addMessage, 
-    updateMessageStatus,
-    setMessages 
-  } = useRealtimeMessages(roomId, user?._id || '');
-  
   const { 
     typingUsers, 
     handleTyping, 
     handleStopTyping 
   } = useTypingIndicator(roomId || '');
   const { onlineUsers } = useOnlineStatus();
+
+  // Load messages and chat user info
+  useEffect(() => {
+    const loadChatData = async () => {
+      if (!roomId || !user) return;
+      
+      setLoading(true);
+      try {
+        // Join the socket room
+        if (joinRoom) {
+          joinRoom(roomId);
+        }
+
+        // Load messages and user info for this room
+        const { messages: roomMessages, user: roomUser } = await fetchRoomWithMessages(roomId);
+        setMessages(roomMessages);
+        
+        if (roomUser) {
+          setChatUser({
+            ...roomUser,
+            isOnline: onlineUsers.includes(roomUser.id) // Set online status from socket data
+          });
+        } else {
+          // Fallback: try to find the user from existing chats
+          const currentChat = chats.find(chat => chat.roomId === roomId);
+          if (currentChat) {
+            const otherUser = currentChat.participants.find(p => p.id !== user._id);
+            if (otherUser) {
+              setChatUser({
+                ...otherUser,
+                isOnline: onlineUsers.includes(otherUser.id) // Set online status from socket data
+              });
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Error loading chat data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadChatData();
+
+    // Cleanup: leave room when component unmounts or roomId changes
+    return () => {
+      if (roomId && leaveRoom) {
+        leaveRoom(roomId);
+      }
+    };
+  }, [roomId, user, fetchRoomWithMessages, chats, joinRoom, leaveRoom]);
+
+  // Real-time message listening
+  useEffect(() => {
+    if (!roomId || !user) return;
+
+    console.log('Setting up real-time message listener for room:', roomId);
+
+    const unsubscribe = onNewMessage((newMessageData: any) => {
+      console.log('Received new message via socket:', newMessageData);
+      
+      // Check if message belongs to current room
+      if (newMessageData.roomId === roomId) {
+        const newMessage: Message = {
+          id: newMessageData._id || Date.now().toString(),
+          text: newMessageData.message || '',
+          messageType: newMessageData.messageType || 'text',
+          senderId: newMessageData.sender,
+          timestamp: new Date(newMessageData.createdAt || Date.now()),
+          isOwn: newMessageData.sender === user._id,
+          status: 'delivered',
+          mediaUrl: newMessageData.image?.url,
+        };
+
+        setMessages(prev => {
+          // Check if message already exists to prevent duplicates
+          const exists = prev.some(msg => msg.id === newMessage.id);
+          if (exists) {
+            console.log('Message already exists, skipping duplicate');
+            return prev;
+          }
+          console.log('Adding new message to state');
+          return [...prev, newMessage];
+        });
+      }
+    });
+
+    return () => {
+      console.log('Cleaning up real-time message listener');
+      unsubscribe();
+    };
+  }, [roomId, user, onNewMessage]);
+
+  // Update online status when online users change
+  useEffect(() => {
+    if (chatUser) {
+      setChatUser(prev => prev ? {
+        ...prev,
+        isOnline: onlineUsers.includes(prev.id)
+      } : null);
+    }
+  }, [onlineUsers, chatUser?.id]);
 
   // Check if mobile view
   useEffect(() => {
@@ -57,84 +152,32 @@ const ChatPage: React.FC<ChatPageProps> = () => {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  // Load chat user data (mock for now - replace with API call)
-  useEffect(() => {
-    if (chatUserId) {
-      // TODO: Replace with actual API call
-      const mockUser: ChatUser = {
-        id: chatUserId,
-        firstName: 'Sarah',
-        lastName: 'Johnson',
-        profilePicture: '/assets/auth/login.png',
-        isOnline: onlineUsers.includes(chatUserId),
-        lastSeen: new Date()
-      };
-      setChatUser(mockUser);
-    }
-  }, [chatUserId, onlineUsers]);
-
-  // Load chat history (mock for now - replace with API call)
-  useEffect(() => {
-    if (roomId && user) {
-      // TODO: Replace with actual API call to load chat history
-      const mockMessages: Message[] = [
-        {
-          id: '1',
-          text: 'Hey there! How are you doing?',
-          messageType: 'text',
-          senderId: chatUserId,
-          timestamp: new Date(Date.now() - 60000),
-          status: 'read',
-          isOwn: false
-        },
-        {
-          id: '2',
-          text: 'Hi! I\'m doing great, thanks for asking! How about you?',
-          messageType: 'text',
-          senderId: user._id,
-          timestamp: new Date(Date.now() - 30000),
-          status: 'read',
-          isOwn: true
-        }
-      ];
-      setMessages(mockMessages);
-    }
-  }, [roomId, user, setMessages, chatUserId]);
-
   const handleSendMessage = async () => {
-    if (!message.trim() || !user || !chatUserId || !roomId || !isConnected) {
+    if (!message.trim() || !user || !roomId || !isConnected) {
       return;
     }
 
-    // Create the message object
-    const newMessage: Message = {
-      id: Date.now().toString(),
-      text: message.trim(),
-      messageType: 'text',
-      senderId: user._id,
-      timestamp: new Date(),
-      status: 'sending',
-      isOwn: true
-    };
-
-    // Add to local state immediately for optimistic UI
-    addMessage(newMessage);
+    const messageText = message.trim();
     
-    // Clear input
+    // Clear input immediately
     setMessage('');
     
     // Stop typing
     handleStopTyping();
 
     try {
-      // Send message using socket context
-      sendMessage(roomId, message.trim(), 'text');
+      // Send message using our API - backend will handle socket emission
+      const success = await sendApiMessage(roomId, messageText, 'text');
       
-      // Update status to sent
-      updateMessageStatus(newMessage.id, { status: 'sent' });
+      if (!success) {
+        // If API call failed, show error and restore message
+        setMessage(messageText);
+        console.error('Failed to send message via API');
+      }
     } catch (error) {
-      console.error('Failed to send message:', error);
-      updateMessageStatus(newMessage.id, { status: 'failed' });
+      console.error('Error sending message:', error);
+      // Restore message on error
+      setMessage(messageText);
     }
   };
 
@@ -157,11 +200,11 @@ const ChatPage: React.FC<ChatPageProps> = () => {
     window.history.back();
   };
 
-  if (!user || !chatUser) {
+  if (!user || loading) {
     return (
       <div className="flex items-center justify-center h-screen">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto mb-4"></div>
+          <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-primary-600" />
           <p className="text-gray-600">Loading chat...</p>
         </div>
       </div>
@@ -178,11 +221,16 @@ const ChatPage: React.FC<ChatPageProps> = () => {
       )}
 
       <ChatHeader
-        user={chatUser}
+        user={chatUser || {
+          id: 'unknown',
+          firstName: 'Loading',
+          lastName: '...',
+          isOnline: false
+        }}
         onBack={handleBack}
         showBackButton={showMobileBack}
         isConnected={isConnected}
-        typingUsers={typingUsers}
+        typingUsers={typingUsers.filter(userId => userId !== user._id)}
         onVideoCall={() => console.log('Video call')}
         onMoreOptions={() => console.log('More options')}
       />

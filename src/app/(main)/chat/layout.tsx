@@ -6,100 +6,10 @@ import { ChatSidebar } from "./_components";
 import { Chat, ChatUser } from "./types";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
+import { useChatData } from "@/hooks/useChatData";
+import { Loader2 } from "lucide-react";
 
-const mockCurrentUser: ChatUser = {
-  id: "current-user",
-  firstName: "John",
-  lastName: "Doe",
-  isOnline: true,
-};
-
-const mockChats: Chat[] = [
-  {
-    id: "1",
-    roomId: "room-1",
-    participants: [
-      mockCurrentUser,
-      {
-        id: "user-1",
-        firstName: "Sarah",
-        lastName: "Chen",
-        profilePicture:
-          "https://i.pinimg.com/736x/79/43/be/7943be8d78be7e10f5c4f270b386755f.jpg",
-        isOnline: true,
-      },
-    ],
-    lastMessage: {
-      id: "msg-1",
-      text: "You might just be my favorite notification today 😏",
-      messageType: "text",
-      senderId: "user-1",
-      timestamp: new Date(Date.now() - 1800000),
-      isOwn: false,
-      status: "delivered",
-    },
-    unreadCount: 2,
-    isActive: true,
-    createdAt: new Date(Date.now() - 86400000),
-    updatedAt: new Date(Date.now() - 1800000),
-  },
-  {
-    id: "2",
-    roomId: "room-2",
-    participants: [
-      mockCurrentUser,
-      {
-        id: "user-2",
-        firstName: "Mike",
-        lastName: "Rivera",
-        profilePicture:
-          "https://i.pinimg.com/736x/ee/3c/70/ee3c70861f89fbabf2132e544bee7d9a.jpg",
-        isOnline: false,
-      },
-    ],
-    lastMessage: {
-      id: "msg-2",
-      text: "Careful, you are kinda addictive 🔥",
-      messageType: "text",
-      senderId: "user-2",
-      timestamp: new Date(Date.now() - 7200000),
-      isOwn: false,
-      status: "delivered",
-    },
-    unreadCount: 0,
-    isActive: true,
-    createdAt: new Date(Date.now() - 172800000),
-    updatedAt: new Date(Date.now() - 7200000),
-  },
-  {
-    id: "3",
-    roomId: "room-3",
-    participants: [
-      mockCurrentUser,
-      {
-        id: "user-3",
-        firstName: "Luna",
-        lastName: "Starweaver",
-        profilePicture:
-          "https://i.pinimg.com/736x/51/2f/03/512f03d5b6a387f7e468700dc3aa87fa.jpg",
-        isOnline: true,
-      },
-    ],
-    lastMessage: {
-      id: "msg-3",
-      text: "You've officially become my favorite distraction 💕",
-      messageType: "text",
-      senderId: "user-3",
-      timestamp: new Date(Date.now() - 3600000),
-      isOwn: false,
-      status: "sent",
-    },
-    unreadCount: 1,
-    isActive: true,
-    createdAt: new Date(Date.now() - 259200000),
-    updatedAt: new Date(Date.now() - 3600000),
-  },
-];
+const mockChats: Chat[] = [];
 
 interface ChatLayoutProps {
   children: React.ReactNode;
@@ -108,35 +18,23 @@ interface ChatLayoutProps {
 const ChatLayout: React.FC<ChatLayoutProps> = ({ children }) => {
   const pathname = usePathname();
   const router = useRouter();
-  const [chats, setChats] = useState<Chat[]>(mockChats);
+  const { chats, loading, error, currentUser, refreshChats } = useChatData();
 
   const isSpecificChat = pathname.startsWith("/chat/") && pathname !== "/chat";
   const currentChatId = isSpecificChat ? pathname.split("/chat/")[1] : null;
 
   useEffect(() => {
     if (currentChatId) {
-      markChatAsRead(currentChatId);
+      // Mark chat as read - this could be handled by the backend
+      console.log(`Marking chat ${currentChatId} as read`);
+      // TODO: Implement mark as read API call
     }
   }, [currentChatId]);
 
   const markChatAsRead = (chatId: string) => {
-    setChats((prevChats) =>
-      prevChats.map((chat) => {
-        if (chat.id === chatId) {
-          return {
-            ...chat,
-            unreadCount: 0,
-            lastMessage: chat.lastMessage
-              ? {
-                  ...chat.lastMessage,
-                  status: "read",
-                }
-              : undefined,
-          };
-        }
-        return chat;
-      })
-    );
+    // This would ideally make an API call to mark messages as read
+    console.log(`Marking chat ${chatId} as read`);
+    // For now, we'll let the backend handle this when messages are fetched
   };
 
   const handleChatSelect = (chatId: string) => {
@@ -151,12 +49,30 @@ const ChatLayout: React.FC<ChatLayoutProps> = ({ children }) => {
         } w-full md:w-80 lg:w-[400px] flex-shrink-0`}
       >
         <div className="w-full h-full overflow-hidden">
-          <ChatSidebar
-            chats={chats}
-            selectedChatId={currentChatId || undefined}
-            onChatSelect={handleChatSelect}
-            currentUserId={mockCurrentUser.id}
-          />
+          {loading ? (
+            <div className="flex items-center justify-center h-full">
+              <div className="text-center">
+                <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-primary-600" />
+                <p className="text-gray-600">Loading chats...</p>
+              </div>
+            </div>
+          ) : error ? (
+            <div className="flex items-center justify-center h-full">
+              <div className="text-center p-6">
+                <p className="text-gray-600 mb-4">{error}</p>
+                <Button onClick={refreshChats} variant="outline">
+                  Try Again
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <ChatSidebar
+              chats={chats}
+              selectedChatId={currentChatId || undefined}
+              onChatSelect={handleChatSelect}
+              currentUserId={currentUser?.id || ""}
+            />
+          )}
         </div>
       </div>
 

@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { MatchHeader, MatchFallback, MatchCard, MatchFilterSheet } from "./_components";
+import { UserDetailSheet } from "./_components/UserDetailSheet";
 import { useMatchFinder } from "@/hooks/useMatchFinder";
 import { Button } from "@/components/ui/button";
 import { MatchFilters } from "./types/filter.types";
@@ -9,6 +10,8 @@ import { DEFAULT_FILTERS } from "./constants/filter.constants";
 
 const page = () => {
   const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+  const [isUserDetailOpen, setIsUserDetailOpen] = useState(false);
   const {
     matches,
     loading,
@@ -41,6 +44,16 @@ const page = () => {
 
   const handleRefresh = () => {
     refresh();
+  };
+
+  const handleUserClick = (userId: string) => {
+    setSelectedUserId(userId);
+    setIsUserDetailOpen(true);
+  };
+
+  const handleCloseUserDetail = () => {
+    setIsUserDetailOpen(false);
+    setSelectedUserId(null);
   };
 
   if (loading && matches.length === 0) {
@@ -101,13 +114,14 @@ const page = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <MatchHeader onFilterClick={handleFilterClick} />
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {matches.map((match, index) => (
             <MatchCard
               key={match._id}
               user={match}
               onLike={handleLike}
               onPass={handlePass}
+              onUserClick={handleUserClick}
               className={`transform transition-all duration-300 ${
                 index === 0 ? "scale-100" : "scale-95 opacity-80"
               }`}
@@ -152,6 +166,15 @@ const page = () => {
         isOpen={isFilterOpen}
         onClose={() => setIsFilterOpen(false)}
         isLoading={loading}
+      />
+
+      {/* User Detail Sheet */}
+      <UserDetailSheet
+        userId={selectedUserId}
+        isOpen={isUserDetailOpen}
+        onClose={handleCloseUserDetail}
+        onLike={handleLike}
+        onPass={handlePass}
       />
     </div>
   );
