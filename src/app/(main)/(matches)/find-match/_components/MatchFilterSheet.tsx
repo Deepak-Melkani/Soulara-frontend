@@ -18,7 +18,6 @@ import { Filter, RotateCcw, Check } from 'lucide-react';
 interface MatchFilterSheetProps {
   filters: MatchFilters;
   onFiltersChange: (filters: MatchFilters) => void;
-  onApplyFilters: () => void;
   onClearFilters: () => void;
   isOpen: boolean;
   onClose: () => void;
@@ -37,7 +36,6 @@ type LastActiveWithin = NonNullable<MatchFilters['lastActiveWithin']>;
 export const MatchFilterSheet: React.FC<MatchFilterSheetProps> = ({
   filters,
   onFiltersChange,
-  onApplyFilters,
   onClearFilters,
   isOpen,
   onClose,
@@ -65,7 +63,6 @@ export const MatchFilterSheet: React.FC<MatchFilterSheetProps> = ({
 
   const handleApply = () => {
     onFiltersChange(tempFilters);
-    onApplyFilters();
     onClose();
   };
 
@@ -107,6 +104,9 @@ export const MatchFilterSheet: React.FC<MatchFilterSheetProps> = ({
     if (tempFilters.smoking?.length) count++;
     if (tempFilters.drinking?.length) count++;
     if (tempFilters.children?.length) count++;
+    if (tempFilters.interests?.length) count++;
+    if (tempFilters.religion) count++;
+    if (tempFilters.languages?.length) count++;
     if (tempFilters.isVerified) count++;
     if (tempFilters.lastActiveWithin && tempFilters.lastActiveWithin !== 30) count++;
     if (tempFilters.minProfileCompleteness && tempFilters.minProfileCompleteness > 0) count++;
@@ -340,6 +340,78 @@ export const MatchFilterSheet: React.FC<MatchFilterSheetProps> = ({
                     );
                   })}
                 </div>
+              </div>
+            </div>
+
+            <Separator />
+
+            {/* Interests */}
+            <div className="space-y-4">
+              <Label className="text-lg font-semibold text-gray-900">Interests</Label>
+              <div className="grid grid-cols-2 gap-2">
+                {FILTER_OPTIONS.interestOptions.map((option) => {
+                  const isSelected = tempFilters.interests?.includes(option.value) || false;
+                  return (
+                    <label
+                      key={option.value}
+                      className={`flex items-center space-x-2 p-2 rounded-lg border cursor-pointer transition-all text-sm ${
+                        isSelected ? 'border-primary-500 bg-primary-50' : 'border-gray-200 hover:bg-gray-50'
+                      }`}
+                    >
+                      <Checkbox
+                        checked={isSelected}
+                        onCheckedChange={() => toggleArrayFilter('interests', option.value)}
+                      />
+                      <span>{option.label}</span>
+                    </label>
+                  );
+                })}
+              </div>
+            </div>
+
+            <Separator />
+
+            {/* Religion */}
+            <div className="space-y-4">
+              <Label className="text-lg font-semibold text-gray-900">Religion</Label>
+              <RadioGroup
+                value={tempFilters.religion || ''}
+                onValueChange={(value) => updateFilter('religion', value || undefined)}
+              >
+                <RadioGroupItem value="">
+                  <span className="font-medium">Any</span>
+                </RadioGroupItem>
+                {FILTER_OPTIONS.religionOptions.map((option) => (
+                  <RadioGroupItem key={option.value} value={option.value}>
+                    <span className="font-medium">{option.label}</span>
+                  </RadioGroupItem>
+                ))}
+              </RadioGroup>
+            </div>
+
+            <Separator />
+
+            {/* Languages */}
+            <div className="space-y-4">
+              <Label className="text-lg font-semibold text-gray-900">Languages</Label>
+              <div className="grid grid-cols-2 gap-2">
+                {FILTER_OPTIONS.languageOptions.map((option) => {
+                  const isSelected = tempFilters.languages?.includes(option.value) || false;
+                  return (
+                    <label
+                      key={option.value}
+                      className={`flex items-center space-x-2 p-2 rounded-lg border cursor-pointer transition-all text-sm ${
+                        isSelected ? 'border-primary-500 bg-primary-50' : 'border-gray-200 hover:bg-gray-50'
+                      }`}
+                    >
+                      <Checkbox
+                        checked={isSelected}
+                        onCheckedChange={() => toggleArrayFilter('languages', option.value)}
+                      />
+                      <span>{option.label}</span>
+                    </label>
+                  );
+                })}
               </div>
             </div>
 

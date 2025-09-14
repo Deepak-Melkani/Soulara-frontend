@@ -9,9 +9,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import ClientOnly from '@/components/ClientOnly'
 
 const MatchingPreferencesSection: React.FC = () => {
-  // Generate age options from 18 to 80
   const ageOptions = Array.from({length: 63}, (_, i) => i + 18)
 
   return (
@@ -42,6 +42,26 @@ const MatchingPreferencesSection: React.FC = () => {
           aria-label="Matching preferences form"
           noValidate
         >
+          <ClientOnly fallback={
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 mb-6">
+              <div className="space-y-3 min-w-0">
+                <Label className="text-sm font-medium block">I am a</Label>
+                <div className="h-11 w-full bg-muted rounded-md animate-pulse"></div>
+              </div>
+              <div className="space-y-3 min-w-0">
+                <Label className="text-sm font-medium block">Looking for</Label>
+                <div className="h-11 w-full bg-muted rounded-md animate-pulse"></div>
+              </div>
+              <div className="space-y-3 min-w-0">
+                <Label className="text-sm font-medium block">Age from</Label>
+                <div className="h-11 w-full bg-muted rounded-md animate-pulse"></div>
+              </div>
+              <div className="space-y-3 min-w-0">
+                <Label className="text-sm font-medium block">Age to</Label>
+                <div className="h-11 w-full bg-muted rounded-md animate-pulse"></div>
+              </div>
+            </div>
+          }>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 mb-6">
             {/* I am */}
             <div className="space-y-3 min-w-0">
@@ -133,6 +153,7 @@ const MatchingPreferencesSection: React.FC = () => {
               </span>
             </div>
           </div>
+          </ClientOnly>
 
           {/* Location */}
           <div className="space-y-3 mt-6 pt-6 border-t border-border/30">

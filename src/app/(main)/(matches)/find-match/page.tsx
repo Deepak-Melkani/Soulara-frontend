@@ -28,10 +28,6 @@ const FindMatchPage = () => {
     setIsFilterOpen(true);
   };
 
-  const handleApplyFilters = () => {
-    // The filters are already applied through applyFilters function
-  };
-
   const handleClearFilters = () => {
     clearFilters();
   };
@@ -151,18 +147,15 @@ const FindMatchPage = () => {
         </div>
       </div>
 
-      {/* Filter Sheet */}
       <MatchFilterSheet
         filters={filters}
         onFiltersChange={applyFilters}
-        onApplyFilters={handleApplyFilters}
         onClearFilters={handleClearFilters}
         isOpen={isFilterOpen}
         onClose={() => setIsFilterOpen(false)}
         isLoading={loading}
       />
 
-      {/* User Detail Sheet */}
       <UserDetailSheet
         userId={selectedUserId}
         isOpen={isUserDetailOpen}

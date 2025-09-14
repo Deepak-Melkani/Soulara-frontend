@@ -97,7 +97,7 @@ const MobileMenu = ({ userCoins, notificationCount, chatCount, className }: Mobi
 
             <div className="w-full">
               <NavbarItem
-                href="/notifications"
+                href="/profile?tab=notifications"
                 icon={
                   <svg
                     className="w-5 h-5 text-foreground"
@@ -178,7 +178,7 @@ const MobileMenu = ({ userCoins, notificationCount, chatCount, className }: Mobi
 
           <div className="pt-4 mt-4 border-t border-border space-y-3">
             <Link 
-              href="/settings"
+              href="/profile?tab=account"
               className="w-full flex items-center space-x-3 px-4 py-3 rounded-xl hover:bg-accent/80 transition-colors text-left"
               onClick={handleLinkClick}
             >

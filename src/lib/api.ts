@@ -198,12 +198,27 @@ export const apiRequest = async <T = unknown>(
     }
 
     let errorMessage = "An error occurred";
+    let errorData: { errorCode?: string; errors?: unknown; message?: string; error?: string } | null = null;
+    
     try {
-      const errorData = await response.json();
-      errorMessage = errorData.message || errorData.error || errorMessage;
+      errorData = await response.json();
+      
+      
+      if (errorData?.errorCode === "VALIDATION_ERROR" && errorData.errors) {
+        return {
+          success: false,
+          error: true,
+          errorCode: "VALIDATION_ERROR",
+          errors: errorData.errors,
+          message: errorData.message || "Validation failed"
+        } as T;
+      } else {
+        errorMessage = errorData?.message || errorData?.error || errorMessage;
+      }
     } catch {
       errorMessage = response.statusText || errorMessage;
     }
+    
     throw new Error(errorMessage);
   }
 

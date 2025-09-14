@@ -49,4 +49,7 @@ export interface FilterOptions {
   genderPreferenceOptions: { value: string; label: string }[];
   lookingForOptions: { value: string; label: string }[];
   lastActiveOptions: { value: number; label: string }[];
+  interestOptions: { value: string; label: string }[];
+  religionOptions: { value: string; label: string }[];
+  languageOptions: { value: string; label: string }[];
 }

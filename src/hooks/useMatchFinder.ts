@@ -96,10 +96,6 @@ export const useMatchFinder = () => {
       params.append("ageMax", filters.ageRange.max.toString());
     }
 
-    if (filters.gender) {
-      params.append("gender", filters.gender);
-    }
-
     if (filters.genderPreference) {
       params.append("genderPreference", filters.genderPreference);
     }

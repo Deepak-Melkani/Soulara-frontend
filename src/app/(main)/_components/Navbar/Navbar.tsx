@@ -113,13 +113,15 @@ const Navbar = () => {
                     />
                   </Link>
 
-                  <NavbarItem
-                    icon={<Bell className="w-5 h-5 text-foreground" />}
-                    label="Notifications"
-                    badge={
-                      notificationCount > 0 ? notificationCount : undefined
-                    }
-                  />
+                  <Link href="/profile?tab=notifications">
+                    <NavbarItem
+                      icon={<Bell className="w-5 h-5 text-foreground" />}
+                      label="Notifications"
+                      badge={
+                        notificationCount > 0 ? notificationCount : undefined
+                      }
+                    />
+                  </Link>
 
                   <Link href="/chat">
                     <NavbarItem
