@@ -1,4 +1,5 @@
 import React from 'react';
+import Image from 'next/image';
 
 const AboutUsPage = () => {
   const developers = [
@@ -6,7 +7,7 @@ const AboutUsPage = () => {
       id: 1,
       name: "Satrasala Hari priya",
       role: "Lead Frontend Developer",
-      image: "/assets/hari-priya.jpg ",
+      image: "/assets/hari-priya.jpg",
       description: "Expert in Next.js and React, creating seamless user experiences for meaningful connections."
     },
     {
@@ -59,7 +60,7 @@ const AboutUsPage = () => {
               </p>
               <p className="text-lg text-foreground mb-6 leading-relaxed">
                 Our advanced OCEAN personality assessment, combined with cutting-edge matching algorithms, helps you find 
-                someone who truly understands you. We're not just another dating app—we're a platform for souls seeking 
+                someone who truly understands you. We&apos;re not just another dating app—we&apos;re a platform for souls seeking 
                 their perfect match through scientific compatibility and meaningful conversation.
               </p>
               <div className="bg-primary-100 p-6 rounded-lg border border-primary-200">
@@ -200,16 +201,18 @@ const AboutUsPage = () => {
             Meet Our Development Team
           </h2>
           <p className="text-xl text-center text-foreground mb-12 max-w-3xl mx-auto">
-            The passionate developers behind Soulara's advanced matching technology and beautiful user experience
+            The passionate developers behind Soulara&apos;s advanced matching technology and beautiful user experience
           </p>
           
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
             {developers.map((developer) => (
               <div key={developer.id} className="bg-white rounded-xl shadow-lg overflow-hidden border border-primary-200 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
                 <div className="aspect-square overflow-hidden">
-                  <img 
+                  <Image 
                     src={developer.image} 
                     alt={developer.name}
+                    width={400}
+                    height={400}
                     className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
                   />
                 </div>
@@ -266,7 +269,7 @@ const AboutUsPage = () => {
             <div className="text-center p-6 border border-primary-200 rounded-lg hover:border-primary-400 transition-colors">
               <div className="text-3xl mb-4">🌟</div>
               <h3 className="text-xl font-semibold text-primary-800 mb-3">Success Stories</h3>
-              <p className="text-foreground">Over 12,000 couples have found lasting love through Soulara's platform.</p>
+              <p className="text-foreground">Over 12,000 couples have found lasting love through Soulara&apos;s platform.</p>
             </div>
           </div>
         </div>
@@ -312,7 +315,7 @@ const AboutUsPage = () => {
             Ready to Find Your Soul Connection?
           </h2>
           <p className="text-xl text-primary-100 mb-8 max-w-2xl mx-auto">
-            Join thousands of happy couples who discovered lasting love through Soulara's advanced matching technology. 
+            Join thousands of happy couples who discovered lasting love through Soulara&apos;s advanced matching technology. 
             Your perfect match is waiting.
           </p>
           <div className="space-y-4 sm:space-y-0 sm:space-x-4 sm:flex sm:justify-center">
