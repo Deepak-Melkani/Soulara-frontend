@@ -7,7 +7,7 @@ const AboutUsPage = () => {
       id: 1,
       name: "Satrasala Hari priya",
       role: "Lead Frontend Developer",
-      image: "/assets/hari-priya.jpg",
+      image: "/assets/hari-priya.png",
       description: "Expert in Next.js and React, creating seamless user experiences for meaningful connections.",
       socialLinks: [
         { platform: 'github' as const, url: 'https://github.com/shp576' },
