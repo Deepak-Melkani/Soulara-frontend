@@ -1,53 +1,613 @@
-# Soulara - Dat## 📋 Table of Contents
-
-- [🌟 Overview](#-overview)
-- [🏗️ System Architecture](#️-system-architecture)
-- [🛠️ Technology Stack](#️-technology-stack)
-- [📁 Project Structure](#-project-structure)
-- [✨ Features](#-features)
-- [🚀 Getting Started](#-getting-started)
-- [💻 Development](#-development)
-- [🚀 Deployment](#-deployment-1)
-- [🔌 API Integration](#-api-integration)
-- [⚡ Performance & Optimization](#-performance--optimization)
-- [🧪 Testing](#-testing)
-- [🤝 Contributing](#-contributing)
-- [📄 License](#-license)
-- [🙋‍♂️ Support](#️-support)ontend
+# 💕 Soulara - Modern Dating Platform
 
 <div align="center">
   <img src="public/assets/hero/hero-01.png" alt="Soulara Logo" width="200"/>
   
   [![Next.js](https://img.shields.io/badge/Next.js-15.5.2-black)](https://nextjs.org/)
+  [![React](https://img.shields.io/badge/React-18.3.1-blue)](https://reactjs.org/)
   [![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue)](https://www.typescriptlang.org/)
-  [![Tailwind CSS](https://img.shields.io/badge/Tailwind-3.4-06B6D4)](https://tailwindcss.com/)
+  [![Tailwind CSS](https://img.shields.io/badge/Tailwind-4.0-06B6D4)](https://tailwindcss.com/)
   [![Build Status](https://img.shields.io/badge/Build-Passing-green)]()
   
-  **A modern, soul-focused dating platform built with Next.js and TypeScript**
+  **A soul-focused dating platform built with modern web technologies**
   
-  [Live Demo](https://soulara.app) • [API Documentation](../backend/README.md) • [Contributing](#contributing)
+  [Live Demo](https://soulara.app) • [Backend Repo](../backend/README.md) • [Contributing](#contributing) • [API Docs](#api-integration)
 </div>
 
-## � Table of Contents
+## 📋 Table of Contents
 
+- [🌟 Overview](#-overview)
 - [✨ Features](#-features)
-- [🛠️ Tech Stack](#️-tech-stack)
-- [🏗️ System Architecture](#️-system-architecture)
+- [🛠️ Technology Stack](#️-technology-stack)
+- [📁 Project Structure](#-project-structure)
 - [🚀 Getting Started](#-getting-started)
+- [💻 Development](#-development)
+- [🎨 Design System](#-design-system)
 - [🔌 API Integration](#-api-integration)
-- [🌐 Deployment](#-deployment)
+- [🚀 Deployment](#-deployment)
+- [🧪 Testing](#-testing)
 - [🤝 Contributing](#-contributing)
 - [📄 License](#-license)
 
 ## 🌟 Overview
 
-Soulara is a sophisticated dating platform that focuses on deep, meaningful connections through spiritual and emotional compatibility. Unlike traditional dating apps that prioritize appearance, Soulara uses advanced personality assessments, spiritual values alignment, and soul-level matching algorithms.
+Soulara is a modern dating platform that focuses on meaningful connections through personality compatibility, spiritual alignment, and soul-level matching. Built with Next.js 15, TypeScript, and a comprehensive design system.
 
-### Key Differentiators
-- **OCEAN Personality Assessment** - Scientific personality matching
-- **Soul Compatibility Scoring** - Proprietary algorithm for deep connections
-- **Real-time Chat System** - WebSocket-based instant messaging
-- **Advanced Filtering** - Multi-dimensional preference matching
+### Key Features at a Glance
+- 🧠 **OCEAN Personality Assessment** - Scientific personality matching
+- 💕 **Advanced Matching System** - Like, pass, super like with confetti celebrations
+- 🔍 **Real-time Search** - Find users instantly with debounced search
+- 💬 **Live Chat** - WebSocket-based real-time messaging
+- 🎊 **Celebration Effects** - Confetti animations for matches and likes
+- 📱 **Progressive Web App** - Native-like mobile experience
+
+## ✨ Features
+
+### 🔐 Authentication & Security
+- **Multi-provider Authentication** (Email, Social Login)
+- **JWT Token Management** with automatic refresh
+- **Protected Routes** with Next.js middleware
+- **Session Management** with persistent storage
+
+### 👤 Profile Management
+- **Comprehensive Profile Builder** with step-by-step guidance
+- **Photo Upload & Management** with image optimization
+- **OCEAN Personality Assessment** (10 questions, 5 traits)
+- **Privacy Controls** and visibility settings
+
+### 💕 Matching System
+- **Smart Matching Algorithm** based on compatibility scores
+- **Interactive Swipe Interface** with smooth animations
+- **Like/Pass/Super Like** functionality
+- **Match Celebration** with confetti effects using react-confetti
+- **Real-time Match Notifications** with toast feedback
+
+### 🔍 Search & Discovery
+- **Real-time User Search** with debounced API calls
+- **Advanced Filtering** by age, location, interests
+- **Quick Actions** from search results (like/pass buttons)
+- **AI-Recommended Matches** carousel
+
+### 💬 Chat System
+- **Real-time Messaging** with Socket.io
+- **Message Status Indicators** (sent, delivered, read)
+- **Typing Indicators** and online status
+- **Chat History** with pagination
+
+### 📊 Dashboard & Analytics
+- **Matches Dashboard** with comprehensive tabs:
+  - Mutual Matches
+  - Likes Received
+  - Match History
+- **Statistics Overview** with match counts
+- **User Activity Tracking**
+
+## 🛠️ Technology Stack
+
+### Frontend Core
+| Technology | Version | Purpose |
+|------------|---------|---------|
+| **Next.js** | 15.5.2 | React framework with App Router |
+| **React** | 18.3.1 | UI library |
+| **TypeScript** | 5.0+ | Type-safe JavaScript |
+| **Tailwind CSS** | 4.0+ | Utility-first CSS framework |
+
+### UI & Design
+| Technology | Purpose |
+|------------|---------|
+| **shadcn/ui** | Pre-built accessible components |
+| **Radix UI** | Headless UI primitives |
+| **Lucide React** | Modern icon library |
+| **Framer Motion** | Smooth animations |
+| **react-confetti** | Celebration effects |
+
+### State & Data Management
+| Technology | Purpose |
+|------------|---------|
+| **React Context** | Global state management |
+| **Custom Hooks** | Reusable stateful logic |
+| **Socket.io Client** | Real-time communication |
+| **Sonner** | Toast notifications |
+
+### Development Tools
+| Tool | Purpose |
+|------|---------|
+| **ESLint** | Code linting and quality |
+| **TypeScript** | Static type checking |
+| **Turbopack** | Fast development bundling |
+
+## 📁 Project Structure
+
+```
+frontend/
+├── 📄 README.md                     # Project documentation
+├── 📄 package.json                  # Dependencies and scripts
+├── 📄 tailwind.config.js            # Tailwind configuration
+├── 📄 next.config.ts                # Next.js configuration
+├── 📄 tsconfig.json                 # TypeScript configuration
+├── 📄 middleware.ts                 # Authentication middleware
+├── 📁 public/                       # Static assets
+│   ├── 📁 assets/                   # Images and media
+│   └── 📄 favicon.ico               # Site icon
+└── 📁 src/                          # Source code
+    ├── 📁 app/                      # Next.js App Router
+    │   ├── 📄 layout.tsx            # Root layout with providers
+    │   ├── 📄 page.tsx              # Landing page
+    │   ├── 📄 globals.css           # Global styles and variables
+    │   ├── 📁 (auth)/               # Authentication routes
+    │   │   ├── 📁 login/            # Login page
+    │   │   └── 📁 signup/           # Registration page
+    │   └── 📁 (main)/               # Main app (authenticated)
+    │       ├── 📄 layout.tsx        # Main app layout
+    │       ├── 📄 page.tsx          # Dashboard/Home
+    │       ├── 📁 _components/      # Shared main app components
+    │       ├── 📁 (matches)/        # Matching system
+    │       │   ├── 📄 page.tsx      # Matches dashboard
+    │       │   └── 📁 find-match/   # Match finding interface
+    │       │       ├── 📄 page.tsx  # Main matching page
+    │       │       ├── 📄 types.ts  # Match-related types
+    │       │       └── 📁 _components/
+    │       │           ├── 📄 MatchCard.tsx          # Individual match card
+    │       │           ├── 📄 SearchBar.tsx          # User search with quick actions
+    │       │           ├── 📄 MatchNotification.tsx  # Match celebration modal
+    │       │           ├── 📄 RecommendedCarousel.tsx # AI suggestions
+    │       │           └── 📄 index.ts               # Component exports
+    │       ├── 📁 (profile)/        # Profile management
+    │       │   └── 📁 profile/      # Profile pages
+    │       └── 📁 chat/             # Chat system
+    ├── 📁 components/               # Reusable UI components
+    │   ├── 📁 ui/                   # shadcn/ui base components
+    │   │   ├── 📄 button.tsx        # Button component
+    │   │   ├── 📄 card.tsx          # Card component
+    │   │   ├── 📄 dialog.tsx        # Modal dialogs
+    │   │   └── 📄 ...               # Other UI components
+    │   ├── 📁 feedback/             # Feedback system
+    │   ├── 📁 ocean/                # Personality assessment
+    │   └── 📄 ...                   # Other reusable components
+    ├── 📁 context/                  # React contexts
+    │   ├── 📄 AuthContext.tsx       # Authentication state
+    │   └── 📄 SocketContext.tsx     # WebSocket connection
+    ├── 📁 hooks/                    # Custom React hooks
+    │   ├── 📄 useAuth.ts            # Authentication logic
+    │   ├── 📄 useMatch.ts           # Match operations (like/pass/super like)
+    │   ├── 📄 useMatchFinder.ts     # Match discovery logic
+    │   ├── 📄 useChat.ts            # Chat functionality
+    │   └── 📄 useTokenRefresh.ts    # Token management
+    ├── 📁 lib/                      # Utility libraries
+    │   ├── 📄 api.ts                # API client with match endpoints
+    │   ├── 📄 utils.ts              # Utility functions (cn, etc.)
+    │   ├── 📄 config.ts             # App configuration
+    │   └── 📄 auth-service.ts       # Authentication utilities
+    └── 📁 types/                    # TypeScript definitions
+        ├── 📄 auth.types.ts         # Authentication types
+        └── 📄 ...                   # Other type definitions
+```
+
+## 🚀 Getting Started
+
+### Prerequisites
+- **Node.js** >= 18.17.0
+- **npm** >= 9.0.0
+- **Git**
+
+### Installation
+
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/Pawandasila/build-to-bond-frontend.git
+   cd build-to-bond-frontend
+   ```
+
+2. **Install dependencies**
+   ```bash
+   npm install
+   ```
+
+3. **Environment setup**
+   ```bash
+   cp .env.example .env.local
+   ```
+   
+   Configure your environment variables:
+   ```env
+   # API Configuration
+   NEXT_PUBLIC_API_URL=http://localhost:5000/api
+   NEXT_PUBLIC_SOCKET_URL=ws://localhost:5000
+   NEXT_PUBLIC_APP_URL=http://localhost:3000
+   
+   # Authentication
+   NEXT_PUBLIC_JWT_SECRET=your-jwt-secret
+   
+   # Feature Flags
+   NEXT_PUBLIC_ENABLE_CONFETTI=true
+   NEXT_PUBLIC_ENABLE_PERSONALITY_TEST=true
+   ```
+
+4. **Start development server**
+   ```bash
+   npm run dev
+   ```
+
+5. **Open in browser**
+   ```
+   http://localhost:3000
+   ```
+
+### Quick Development Setup
+
+```bash
+# One-line setup (requires backend running on port 5000)
+git clone https://github.com/Pawandasila/build-to-bond-frontend.git && cd build-to-bond-frontend && npm install && npm run dev
+```
+
+## 💻 Development
+
+### Available Scripts
+
+| Script | Description |
+|--------|-------------|
+| `npm run dev` | Start development server with Turbopack |
+| `npm run build` | Build for production (lint + type-check + build) |
+| `npm run start` | Start production server |
+| `npm run lint` | Run ESLint |
+| `npm run type-check` | TypeScript type checking |
+
+### Development Workflow
+
+1. **Create feature branch**
+   ```bash
+   git checkout -b feature/match-system
+   ```
+
+2. **Start development with hot reload**
+   ```bash
+   npm run dev
+   ```
+
+3. **Make changes following the patterns**
+   - Use TypeScript for all files
+   - Follow the component structure
+   - Use the design system colors
+   - Add proper error handling
+
+4. **Test your changes**
+   ```bash
+   npm run lint
+   npm run type-check
+   ```
+
+5. **Commit with conventional commits**
+   ```bash
+   git add .
+   git commit -m "feat: add confetti celebration for matches"
+   ```
+
+### Code Quality Standards
+
+- **TypeScript**: Strict mode enabled, no `any` types
+- **ESLint**: React hooks rules, accessibility rules
+- **Components**: Proper TypeScript interfaces
+- **Error Handling**: Comprehensive try-catch blocks
+- **Performance**: Proper memoization and optimization
+
+## 🎨 Design System
+
+### Color Palette
+
+#### Primary Colors (Brand)
+```css
+--primary-50: #fef7f0    /* Lightest cream */
+--primary-100: #fde4d3   /* Light cream */
+--primary-200: #f9c5a3   /* Soft peach */
+--primary-300: #f5a373   /* Medium peach */
+--primary-400: #ef7744   /* Orange */
+--primary-500: #e65728   /* Main brand color */
+--primary-600: #d74419   /* Darker orange */
+--primary-700: #b73616   /* Dark brand */
+--primary-800: #962b16   /* Very dark */
+--primary-900: #7a2317   /* Darkest */
+```
+
+#### Usage Examples
+```tsx
+<Button className="bg-primary-500 hover:bg-primary-600">
+  Primary Action
+</Button>
+
+<div className="bg-primary-50 text-primary-800">
+  Light brand background
+</div>
+```
+
+### Typography
+
+```css
+--font-sans: "Plus Jakarta Sans"    /* Primary sans-serif */
+--font-serif: "Lora"               /* Body serif text */
+--font-playfair: "Playfair Display" /* Elegant headings */
+--font-marcellus: "Marcellus"      /* Logo and special text */
+```
+
+### Component Patterns
+
+#### Match Card Component
+```tsx
+<MatchCard
+  user={matchUser}
+  onLike={handleLike}           // Triggers confetti + toast
+  onPass={handlePass}           // Shows toast notification  
+  onUserClick={handleViewProfile}
+  className="transform hover:scale-105"
+/>
+```
+
+#### Confetti Celebrations
+```tsx
+// Automatic confetti on likes and matches
+const triggerConfetti = () => {
+  setShowConfetti(true);
+  setTimeout(() => setShowConfetti(false), 3000);
+};
+
+// Usage in like handlers
+<Confetti
+  width={windowDimensions.width}
+  height={windowDimensions.height}
+  numberOfPieces={200}
+  gravity={0.3}
+  colors={['#ff69b4', '#ff1493', '#ff6b6b']}
+/>
+```
+
+## 🔌 API Integration
+
+### API Client
+
+```typescript
+// lib/api.ts - Centralized API configuration
+const api = {
+  // Authentication
+  login: (credentials) => apiRequest('/auth/login', { method: 'POST', body: credentials }),
+  
+  // Match System  
+  matchAPI: {
+    likeUser: (userId) => apiRequest('/match/like', { method: 'POST', body: { userId } }),
+    passUser: (userId) => apiRequest('/match/pass', { method: 'POST', body: { userId } }),
+    superLikeUser: (userId) => apiRequest('/match/super-like', { method: 'POST', body: { userId } }),
+    getMatches: (page, limit) => apiRequest(`/match/matches?page=${page}&limit=${limit}`),
+    getMatchHistory: (page, limit) => apiRequest(`/match/history?page=${page}&limit=${limit}`),
+  },
+  
+  // User Search
+  searchUsers: (query, page, limit) => 
+    apiRequest(`/users/search?name=${encodeURIComponent(query)}&page=${page}&limit=${limit}`),
+}
+```
+
+### Custom Hooks for API
+
+```typescript
+// hooks/useMatch.ts - Match operations with proper typing
+export const useMatch = () => {
+  const [loading, setLoading] = useState(false);
+  
+  const likeUser = async (userId: string): Promise<UserActionResult> => {
+    setLoading(true);
+    try {
+      const result = await api.matchAPI.likeUser(userId);
+      return result;
+    } catch (error) {
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  return { likeUser, passUser, superLikeUser, loading };
+};
+```
+
+### WebSocket Integration
+
+```typescript
+// context/SocketContext.tsx - Real-time communication
+const SocketProvider = ({ children }) => {
+  const [socket, setSocket] = useState<Socket | null>(null);
+  
+  useEffect(() => {
+    const newSocket = io(process.env.NEXT_PUBLIC_SOCKET_URL);
+    setSocket(newSocket);
+    
+    return () => newSocket.close();
+  }, []);
+  
+  return (
+    <SocketContext.Provider value={{ socket }}>
+      {children}
+    </SocketContext.Provider>
+  );
+};
+```
+
+## 🚀 Deployment
+
+### Vercel (Recommended)
+
+1. **Connect your repository** to Vercel
+2. **Configure environment variables** in Vercel dashboard
+3. **Automatic deployments** on push to main branch
+
+```bash
+# Deploy manually
+npm run build
+vercel --prod
+```
+
+### Environment Variables for Production
+
+```env
+# Production API
+NEXT_PUBLIC_API_URL=https://api.soulara.app
+NEXT_PUBLIC_SOCKET_URL=wss://api.soulara.app
+NEXT_PUBLIC_APP_URL=https://soulara.app
+
+# Security
+NEXT_PUBLIC_JWT_SECRET=your-production-secret
+
+# Analytics (optional)
+NEXT_PUBLIC_GA_ID=GA-XXXXXXXXX
+```
+
+### Build Optimization
+
+```json
+// next.config.ts - Production optimizations
+const nextConfig = {
+  experimental: {
+    turbo: {
+      loaders: {
+        '.svg': ['@svgr/webpack'],
+      },
+    },
+  },
+  images: {
+    domains: ['your-cdn-domain.com'],
+    formats: ['image/webp', 'image/avif'],
+  },
+  compress: true,
+  swcMinify: true,
+};
+```
+
+## 🧪 Testing
+
+### Testing Strategy
+
+```bash
+# Run all tests
+npm run test
+
+# Run with coverage
+npm run test:coverage
+
+# Run specific test file
+npm run test MatchCard.test.tsx
+```
+
+### Component Testing Example
+
+```typescript
+// __tests__/components/MatchCard.test.tsx
+import { render, screen, fireEvent } from '@testing-library/react';
+import { MatchCard } from '@/components/MatchCard';
+
+describe('MatchCard', () => {
+  const mockUser = {
+    _id: '1',
+    firstName: 'John',
+    lastName: 'Doe',
+    age: 25,
+  };
+
+  it('triggers like action with confetti', () => {
+    const onLike = jest.fn();
+    render(<MatchCard user={mockUser} onLike={onLike} />);
+    
+    fireEvent.click(screen.getByRole('button', { name: /like/i }));
+    expect(onLike).toHaveBeenCalledWith('1');
+  });
+});
+```
+
+## 🤝 Contributing
+
+We welcome contributions! Please follow these guidelines:
+
+### Development Process
+
+1. **Fork the repository**
+2. **Create a feature branch**
+   ```bash
+   git checkout -b feature/amazing-feature
+   ```
+3. **Make your changes** following our code standards
+4. **Add tests** for new functionality
+5. **Ensure all checks pass**
+   ```bash
+   npm run lint
+   npm run type-check
+   npm run test
+   ```
+6. **Commit with conventional commits**
+   ```bash
+   git commit -m "feat: add amazing new feature"
+   ```
+7. **Push and create a Pull Request**
+
+### Contribution Guidelines
+
+- **Code Quality**: Follow TypeScript best practices
+- **Component Design**: Use the established design system
+- **Testing**: Add tests for new features
+- **Documentation**: Update README for new patterns
+- **Performance**: Consider optimization and accessibility
+
+### Code Standards
+
+```typescript
+// Good: Proper TypeScript interface
+interface MatchCardProps {
+  user: MatchUser;
+  onLike: (userId: string) => void;
+  onPass: (userId: string) => void;
+  className?: string;
+}
+
+// Good: Error handling
+const handleLike = async (userId: string) => {
+  try {
+    const result = await likeUser(userId);
+    toast.success("❤️ Liked!");
+    triggerConfetti();
+  } catch (error) {
+    toast.error("Failed to like user");
+    console.error(error);
+  }
+};
+```
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🙋‍♂️ Support & Contact
+
+- 📧 **Email**: support@soulara.app
+- 🐛 **Issues**: [GitHub Issues](https://github.com/Pawandasila/build-to-bond-frontend/issues)
+- 💬 **Discussions**: [GitHub Discussions](https://github.com/Pawandasila/build-to-bond-frontend/discussions)
+- 📖 **Documentation**: [Full Docs](https://docs.soulara.app)
+
+### Quick Links
+
+- [🚀 Live Demo](https://soulara.app)
+- [🔧 Backend Repository](https://github.com/Pawandasila/build-to-bond-backend)
+- [📱 Mobile App](https://github.com/Pawandasila/soulara-mobile)
+- [🎨 Design System](https://design.soulara.app)
+
+---
+
+<div align="center">
+  <p><strong>Built with ❤️ for meaningful connections</strong></p>
+  
+  <p>
+    <a href="https://soulara.app">Website</a> • 
+    <a href="https://soulara.app/privacy">Privacy</a> • 
+    <a href="https://soulara.app/terms">Terms</a> •
+    <a href="https://blog.soulara.app">Blog</a>
+  </p>
+  
+  <p><em>Connecting souls through technology</em></p>
+</div>
 - **Progressive Web App** - Native-like mobile experience
 
 ## 🏗️ System Architecture
