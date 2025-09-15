@@ -1,5 +1,5 @@
 import React from 'react';
-import Image from 'next/image';
+import DeveloperCard from '@/components/DeveloperCard';
 
 const AboutUsPage = () => {
   const developers = [
@@ -8,28 +8,52 @@ const AboutUsPage = () => {
       name: "Satrasala Hari priya",
       role: "Lead Frontend Developer",
       image: "/assets/hari-priya.jpg",
-      description: "Expert in Next.js and React, creating seamless user experiences for meaningful connections."
+      description: "Expert in Next.js and React, creating seamless user experiences for meaningful connections.",
+      socialLinks: [
+        { platform: 'github' as const, url: 'https://github.com/shp576' },
+        { platform: 'linkedin' as const, url: 'https://www.linkedin.com/in/haripriya-satrasala/' },
+        { platform: 'twitter' as const, url: 'https://twitter.com/haripriya' },
+        { platform: 'portfolio' as const, url: 'https://haripriya.dev' }
+      ]
     },
     {
       id: 2,
       name: "Sumit Singh Bora",
       role: "Backend Engineer & API Architect",
       image: "/assets/sumit.jpg",
-      description: "Specializes in scalable architecture and secure matching algorithms for the dating platform."
+      description: "Specializes in scalable architecture and secure matching algorithms for the dating platform.",
+      socialLinks: [
+        { platform: 'github' as const, url: 'https://github.com/SumitSingh69' },
+        { platform: 'linkedin' as const, url: 'https://www.linkedin.com/in/sumit-bora/' },
+        { platform: 'twitter' as const, url: 'https://twitter.com/sumitbora' },
+        { platform: 'portfolio' as const, url: 'https://sumitbora.dev' }
+      ]
     },
     {
       id: 3,
       name: "Mukesh Singh Rawat",
       role: "UX/UI Designer",
       image: "/assets/mukesh-bhai.png",
-      description: "Creates intuitive interfaces that make finding love feel natural and effortless."
+      description: "Creates intuitive interfaces that make finding love feel natural and effortless.",
+      socialLinks: [
+        { platform: 'github' as const, url: 'https://github.com/MukeshRawat07' },
+        { platform: 'linkedin' as const, url: 'https://www.linkedin.com/in/mukesh-singh-rawat-988a9a2b7/' },
+        { platform: 'twitter' as const, url: 'https://twitter.com/mukeshrawat' },
+        { platform: 'portfolio' as const, url: 'https://mukeshrawat.design' }
+      ]
     },
     {
       id: 4,
       name: "Pawan Dasila",
       role: "Full Stack Developer & WebSocket Engineer",
       image: "/assets/pawan-bhai.png",
-      description: "Develops real-time chat systems and matching algorithms that bring hearts together."
+      description: "Develops real-time chat systems and matching algorithms that bring hearts together.",
+      socialLinks: [
+        { platform: 'github' as const, url: 'https://github.com/Pawandasila' },
+        { platform: 'linkedin' as const, url: 'https://www.linkedin.com/in/pawan-dasila-92483b251/' },
+        { platform: 'twitter' as const, url: 'https://twitter.com/pawandasila' },
+        { platform: 'portfolio' as const, url: 'https://portfolio-sandy-seven-32.vercel.app/' }
+      ]
     }
   ];
 
@@ -195,35 +219,18 @@ const AboutUsPage = () => {
       </section>
 
       {/* Team Section */}
-      <section className="bg-cream py-16 px-4">
-        <div className="max-w-6xl mx-auto">
+      <section className="bg-cream py-20 px-4">
+        <div className="max-w-7xl mx-auto">
           <h2 className="text-4xl font-bold text-center text-primary-800 mb-4 font-playfair">
             Meet Our Development Team
           </h2>
-          <p className="text-xl text-center text-foreground mb-12 max-w-3xl mx-auto">
+          <p className="text-xl text-center text-foreground mb-16 max-w-3xl mx-auto">
             The passionate developers behind Soulara&apos;s advanced matching technology and beautiful user experience
           </p>
           
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-8 lg:gap-10 place-items-center">
             {developers.map((developer) => (
-              <div key={developer.id} className="bg-white rounded-xl shadow-lg overflow-hidden border border-primary-200 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
-                <div className="aspect-square overflow-hidden">
-                  <Image 
-                    src={developer.image} 
-                    alt={developer.name}
-                    width={400}
-                    height={400}
-                    className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
-                  />
-                </div>
-                <div className="p-6">
-                  <h3 className="text-xl font-bold text-primary-800 mb-1">{developer.name}</h3>
-                  <p className="text-primary-600 font-medium mb-3 text-sm">{developer.role}</p>
-                  <p className="text-sm text-foreground leading-relaxed">
-                    {developer.description}
-                  </p>
-                </div>
-              </div>
+              <DeveloperCard key={developer.id} developer={developer} />
             ))}
           </div>
         </div>
