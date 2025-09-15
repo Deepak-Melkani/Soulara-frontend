@@ -1,6 +1,7 @@
 import React from 'react'
 import Image from 'next/image'
 import { Button } from '@/components/ui/button'
+import { useRouter } from 'next/navigation'
 
 interface StepProps {
   stepNumber: string
@@ -51,6 +52,7 @@ const Step: React.FC<StepProps> = ({
 }
 
 const HowItWorks: React.FC = () => {
+  const router = useRouter();
   const steps = [
     {
       stepNumber: "1",
@@ -121,6 +123,7 @@ const HowItWorks: React.FC = () => {
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
               <Button 
                 size="lg"
+                onClick={() => router.push('/find-match')}
                 className="bg-primary hover:bg-primary-700 text-white font-sans shadow-sm px-10 py-4 text-lg font-semibold transition-all duration-300"
                 aria-label="Get started with Soulara dating platform"
               >

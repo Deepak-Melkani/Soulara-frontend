@@ -10,9 +10,11 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import ClientOnly from '@/components/ClientOnly'
+import { useRouter } from 'next/navigation' 
 
 const MatchingPreferencesSection: React.FC = () => {
   const ageOptions = Array.from({length: 63}, (_, i) => i + 18)
+  const router = useRouter();
 
   return (
     <section 
@@ -182,6 +184,7 @@ const MatchingPreferencesSection: React.FC = () => {
           <div className="mt-8 pt-4 border-t border-border/50 text-center">
             <Button 
               type="submit"
+              onClick={() => router.push('/find-match')}
               size="lg"
               className="w-full sm:w-auto bg-primary hover:bg-primary-700 text-white font-sans shadow-sm px-8 py-4 text-lg font-semibold transition-all duration-300"
               aria-label="Submit matching preferences and start finding compatible matches"
