@@ -17,6 +17,28 @@ export default function BasicInformationSection({
     }
   };
 
+  // Helper function to format date for input
+  const formatDateForInput = (dateString: string | undefined) => {
+    if (!dateString) return "";
+    const date = new Date(dateString);
+    return date.toISOString().split('T')[0]; // Returns YYYY-MM-DD format
+  };
+
+  // Helper function to calculate age from date of birth
+  const calculateAge = (dob: string | undefined) => {
+    if (!dob) return null;
+    const today = new Date();
+    const birthDate = new Date(dob);
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+    
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+    
+    return age;
+  };
+
   return (
     <div className="bg-white border border-border rounded-xl p-6 shadow-sm">
       <SectionHeader
@@ -85,6 +107,48 @@ export default function BasicInformationSection({
               placeholder="Enter your phone number"
               className="h-11 border-border focus:border-primary focus:ring-primary/20"
             />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="space-y-3">
+            <Label htmlFor="dob" className="text-sm font-medium text-primary">
+              Date of Birth
+              {formData.dob && (
+                <span className="text-muted-foreground font-normal ml-2">
+                  (Age: {calculateAge(formData.dob)})
+                </span>
+              )}
+            </Label>
+            <Input
+              id="dob"
+              type="date"
+              value={formatDateForInput(formData.dob)}
+              onChange={(e) => onFieldChange("dob", e.target.value)}
+              className="h-11 border-border focus:border-primary focus:ring-primary/20"
+              max={new Date(new Date().setFullYear(new Date().getFullYear() - 18)).toISOString().split('T')[0]}
+              min={new Date(new Date().setFullYear(new Date().getFullYear() - 100)).toISOString().split('T')[0]}
+            />
+            <p className="text-xs text-muted-foreground">
+              You must be at least 18 years old
+            </p>
+          </div>
+          <div className="space-y-3">
+            <Label htmlFor="gender" className="text-sm font-medium text-primary">
+              Gender
+            </Label>
+            <select
+              id="gender"
+              value={formData.gender || ""}
+              onChange={(e) => onFieldChange("gender", e.target.value)}
+              className="h-11 w-full border border-border rounded-md px-3 py-2 bg-background focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+            >
+              <option value="">Select gender</option>
+              <option value="male">Male</option>
+              <option value="female">Female</option>
+              <option value="non-binary">Non-binary</option>
+              <option value="other">Other</option>
+            </select>
           </div>
         </div>
 
