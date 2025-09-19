@@ -167,8 +167,6 @@ function ProfilePageContent() {
       };
 
       if (profilePicture) {
-        // Note: Profile picture upload is currently disabled
-        // Just update the profile data without the image
         response = (await apiModule.authAPI.updateProfile(
           updatePayload
         )) as {
