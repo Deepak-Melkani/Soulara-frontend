@@ -56,3 +56,5 @@ export interface DatingPreferencesSectionProps extends BaseSectionProps {
 export type PersonalDetailsSectionProps = BaseSectionProps;
 
 export type LocationSectionProps = BaseSectionProps;
+
+export type SocialLinksSectionProps = BaseSectionProps;

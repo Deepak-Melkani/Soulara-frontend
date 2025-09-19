@@ -50,7 +50,8 @@ const LikesAndCrushes: React.FC = () => {
 
   const fetchLikesData = async () => {
     try {
-      const response = await apiModule.authAPI.getLikes() as ApiResponse<LikesData>;
+      const response =
+        (await apiModule.authAPI.getLikes()) as ApiResponse<LikesData>;
       if (response.success) {
         setLikesData(response.data);
       }
@@ -62,7 +63,8 @@ const LikesAndCrushes: React.FC = () => {
 
   const fetchCrushesData = async () => {
     try {
-      const response = await apiModule.authAPI.getCrushes() as ApiResponse<CrushesData>;
+      const response =
+        (await apiModule.authAPI.getCrushes()) as ApiResponse<CrushesData>;
       if (response.success) {
         setCrushesData(response.data);
       }
@@ -74,7 +76,8 @@ const LikesAndCrushes: React.FC = () => {
 
   const fetchMatchesData = async () => {
     try {
-      const response = await apiModule.authAPI.getMatches() as ApiResponse<MatchesData>;
+      const response =
+        (await apiModule.authAPI.getMatches()) as ApiResponse<MatchesData>;
       if (response.success) {
         setMatchesData(response.data);
       }
@@ -103,7 +106,14 @@ const LikesAndCrushes: React.FC = () => {
 
   const handleLikeBack = async (userId: string) => {
     try {
-      const response = await apiModule.authAPI.likeUser(userId) as ApiResponse<{action: string; targetUserId: string; isMatch: boolean; matchId?: string}>;
+      const response = (await apiModule.authAPI.likeUser(
+        userId
+      )) as ApiResponse<{
+        action: string;
+        targetUserId: string;
+        isMatch: boolean;
+        matchId?: string;
+      }>;
       if (response.success) {
         if (response.data?.isMatch) {
           toast.success("🎉 It's a Match!", {
@@ -116,7 +126,7 @@ const LikesAndCrushes: React.FC = () => {
             duration: 3000,
           });
         }
-        // Refresh data
+
         fetchAllData();
       }
     } catch (error) {
@@ -125,29 +135,27 @@ const LikesAndCrushes: React.FC = () => {
     }
   };
 
-  const UserCard: React.FC<{ user: LikedUser; showLikeButton?: boolean }> = ({ 
-    user, 
-    showLikeButton = false 
+  const UserCard: React.FC<{ user: LikedUser; showLikeButton?: boolean }> = ({
+    user,
+    showLikeButton = false,
   }) => {
     const initials = `${user.firstName[0]}${user.lastName[0]}`.toUpperCase();
-    
-    // Helper function to get avatar URL with Dicebear fallback
+
     const getAvatarUrl = () => {
-      // Check for profile picture
       if (user.profilePicture && user.profilePicture.trim()) {
         return user.profilePicture;
       }
-      
-      // Check for avatar field
+
       if (user.avatar && user.avatar.trim()) {
         return user.avatar;
       }
-      
-      // Fallback to Dicebear avatar using name as seed
-      const seed = `${user.firstName}-${user.lastName}` || user._id || 'user';
-      return `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(seed)}`;
+
+      const seed = `${user.firstName}-${user.lastName}` || user._id || "user";
+      return `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(
+        seed
+      )}`;
     };
-    
+
     return (
       <Card className="w-full">
         <CardContent className="p-4">
@@ -157,17 +165,21 @@ const LikesAndCrushes: React.FC = () => {
                 src={getAvatarUrl()}
                 alt={`${user.firstName} ${user.lastName}`}
                 onError={(e) => {
-                  // If image fails to load, fallback to Dicebear
                   const target = e.target as HTMLImageElement;
-                  const seed = `${user.firstName}-${user.lastName}` || user._id || 'user';
-                  target.src = `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(seed)}`;
+                  if (target.dataset.fallbackAttempted) return;
+                  target.dataset.fallbackAttempted = "true";
+                  const seed =
+                    `${user.firstName}-${user.lastName}` || user._id || "user";
+                  target.src = `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(
+                    seed
+                  )}`;
                 }}
               />
               <AvatarFallback className="bg-gradient-to-br from-pink-100 to-rose-200 text-gray-600 font-bold">
                 {initials}
               </AvatarFallback>
             </Avatar>
-            
+
             <div className="flex-1">
               <h4 className="font-semibold text-primary">
                 {user.firstName} {user.lastName}
@@ -182,7 +194,7 @@ const LikesAndCrushes: React.FC = () => {
                 <p className="text-sm text-gray-600 truncate">{user.bio}</p>
               )}
             </div>
-            
+
             {showLikeButton && !user.isMatch && (
               <Button
                 size="sm"
@@ -211,7 +223,9 @@ const LikesAndCrushes: React.FC = () => {
   return (
     <div className="space-y-6">
       <div className="text-center">
-        <h2 className="text-2xl font-bold text-primary mb-2">Your Connections</h2>
+        <h2 className="text-2xl font-bold text-primary mb-2">
+          Your Connections
+        </h2>
         <p className="text-gray-600">See who liked you and your matches</p>
       </div>
 
@@ -247,9 +261,9 @@ const LikesAndCrushes: React.FC = () => {
               ) : (
                 <div className="space-y-3">
                   {crushesData?.crushes.map((user) => (
-                    <UserCard 
-                      key={user._id} 
-                      user={user} 
+                    <UserCard
+                      key={user._id}
+                      user={user}
                       showLikeButton={true}
                     />
                   ))}

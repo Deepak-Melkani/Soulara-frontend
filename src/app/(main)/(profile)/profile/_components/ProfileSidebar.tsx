@@ -24,42 +24,44 @@ export default function ProfileSidebar({
 }: ProfileSidebarProps) {
   const [isUploading, setIsUploading] = useState(false);
 
-  // Helper function to get avatar URL with fallback
   const getAvatarUrl = (profile: User) => {
-    // First check if there's a profile picture in DB
-    const profilePictureUrl = typeof profile.profilePicture === 'string' 
-      ? profile.profilePicture 
-      : profile.profilePicture?.url;
-    
+    const profilePictureUrl =
+      typeof profile.profilePicture === "string"
+        ? profile.profilePicture
+        : profile.profilePicture?.url;
+
     if (profilePictureUrl && profilePictureUrl.trim()) {
       return profilePictureUrl;
     }
-    
-    // Fallback to avatar field if exists
+
     if (profile.avatar && profile.avatar.trim()) {
       return profile.avatar;
     }
-    
-    // Generate Dicebear avatar using email as seed
-    const seed = profile.email || `${profile.firstName}-${profile.lastName}` || 'user';
-    return `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(seed)}`;
+
+    const seed =
+      profile.email || `${profile.firstName}-${profile.lastName}` || "user";
+    return `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(
+      seed
+    )}`;
   };
 
-  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
-    // Validate file type
-    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+    const allowedTypes = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
     if (!allowedTypes.includes(file.type)) {
-      toast.error('Invalid file type. Please select a JPEG, PNG, or WebP image.');
+      toast.error(
+        "Invalid file type. Please select a JPEG, PNG, or WebP image."
+      );
       return;
     }
 
-    // Validate file size (5MB)
     const maxSize = 5 * 1024 * 1024;
     if (file.size > maxSize) {
-      toast.error('File size too large. Maximum size is 5MB.');
+      toast.error("File size too large. Maximum size is 5MB.");
       return;
     }
 
@@ -69,8 +71,8 @@ export default function ProfileSidebar({
         await onProfilePictureChange(file);
       } finally {
         setIsUploading(false);
-        // Clear the input so same file can be selected again
-        event.target.value = '';
+
+        event.target.value = "";
       }
     }
   };
@@ -105,19 +107,16 @@ export default function ProfileSidebar({
                 width={128}
                 height={128}
                 className="w-full h-full object-cover rounded-full"
-                onError={(e) => {
-                  // If image fails to load, fallback to Dicebear
-                  const target = e.target as HTMLImageElement;
-                  const seed = profile.email || `${profile.firstName}-${profile.lastName}` || 'user';
-                  target.src = `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(seed)}`;
-                }}
+                unoptimized
               />
             </div>
 
             <label
               htmlFor="profile-picture-upload"
               className={`absolute inset-0 bg-black/50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity ${
-                isUploading || isLoading ? 'cursor-not-allowed' : 'cursor-pointer'
+                isUploading || isLoading
+                  ? "cursor-not-allowed"
+                  : "cursor-pointer"
               }`}
             >
               {isUploading ? (
@@ -141,7 +140,7 @@ export default function ProfileSidebar({
             {`${profile.firstName || ""} ${profile.lastName || ""}`.trim() ||
               "No name"}
           </h2>
-          
+
           {/* Upload hint */}
           <p className="text-xs text-gray-400 text-center mt-1">
             {isUploading ? "Uploading..." : "Click photo to change"}

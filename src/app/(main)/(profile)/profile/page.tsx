@@ -13,7 +13,7 @@ import ProfileSidebar from "./_components/ProfileSidebar";
 import ProfileDetailsForm from "./_components/ProfileDetailsForm";
 import NotificationsPanel from "./_components/NotificationsPanel";
 import FloatingNotification from "./_components/FloatingNotification";
-import EditProfileModal from "./_components/Edit/EditProfileModal";
+import EditProfileSheet from "./_components/Edit/EditProfileSheet";
 import ProfileLoading from "./loading";
 import { NotificationItem } from "./types";
 import { useAuth } from "@/context/AuthContext";
@@ -245,9 +245,8 @@ function ProfilePageContent() {
 
     setIsLoading(true);
     try {
-      // Note: Profile picture upload is currently disabled
-      // Just return success without actual upload
-      const response = { success: true, data: { user } } as {
+      // Call the actual upload API
+      const response = await apiModule.authAPI.uploadProfilePicture(file) as {
         success: boolean;
         data?: { user: User };
         error?: boolean;
@@ -263,11 +262,33 @@ function ProfilePageContent() {
       );
     } catch (error) {
       console.error("Profile picture update error:", error);
-      toast.error(
-        error instanceof Error
-          ? error.message
-          : "Failed to update profile picture"
-      );
+      
+      // Provide user-friendly error messages
+      let errorMessage = "Failed to update profile picture";
+      
+      if (error instanceof Error) {
+        const message = error.message.toLowerCase();
+        
+        if (message.includes("no image file") || message.includes("no file")) {
+          errorMessage = "Please select an image file to upload";
+        } else if (message.includes("file size") || message.includes("too large")) {
+          errorMessage = "File size too large. Maximum size is 5MB";
+        } else if (message.includes("invalid file type") || message.includes("format")) {
+          errorMessage = "Invalid file type. Please select a JPEG, PNG, or WebP image";
+        } else if (message.includes("cloud_name") || message.includes("cloudinary")) {
+          errorMessage = "Image upload service temporarily unavailable. Please try again later";
+        } else if (message.includes("network") || message.includes("fetch")) {
+          errorMessage = "Network error. Please check your connection and try again";
+        } else if (message.includes("unauthorized") || message.includes("authentication")) {
+          errorMessage = "Session expired. Please log in again";
+          // Optionally redirect to login
+        } else if (error.message && error.message !== "Failed to update profile picture") {
+          // Use the original error message if it's meaningful
+          errorMessage = error.message;
+        }
+      }
+      
+      toast.error(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -375,7 +396,7 @@ function ProfilePageContent() {
       </ClientOnly>
 
       {user && (
-        <EditProfileModal
+        <EditProfileSheet
           isOpen={isEditModalOpen}
           onClose={() => setIsEditModalOpen(false)}
           user={user}

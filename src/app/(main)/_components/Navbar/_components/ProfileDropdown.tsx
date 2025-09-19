@@ -69,8 +69,10 @@ const ProfileDropdown = ({ name, email, src, isOnline = false, className }: Prof
                 src={avatarUrl} 
                 alt={name}
                 onError={(e) => {
-                  // If image fails to load, fallback to Dicebear
+                  // If image fails to load, fallback to Dicebear (only once)
                   const target = e.target as HTMLImageElement;
+                  if (target.dataset.fallbackAttempted) return;
+                  target.dataset.fallbackAttempted = 'true';
                   const seed = email || name.replace(/\s+/g, '-').toLowerCase() || 'user';
                   target.src = `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(seed)}`;
                 }}

@@ -118,8 +118,10 @@ const MatchCard: React.FC<MatchCardProps> = ({
             alt={`${user.firstName} ${user.lastName}`}
             className="object-cover"
             onError={(e) => {
-              // If image fails to load, fallback to Dicebear
+              // If image fails to load, fallback to Dicebear (only once)
               const target = e.target as HTMLImageElement;
+              if (target.dataset.fallbackAttempted) return;
+              target.dataset.fallbackAttempted = 'true';
               const seed = `${user.firstName}-${user.lastName}` || user._id || 'user';
               target.src = `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(seed)}`;
             }}

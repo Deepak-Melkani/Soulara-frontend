@@ -301,6 +301,16 @@ export const authAPI = {
     });
   },
 
+  uploadProfilePicture: (file: File) => {
+    const formData = new FormData();
+    formData.append('profilePicture', file);
+    
+    return apiRequest("/users/profile/upload-picture", {
+      method: "POST",
+      body: formData,
+    });
+  },
+
   changePassword: (currentPassword: string, newPassword: string) =>
     apiRequest("/users/change-password", {
       method: "PUT",
@@ -363,6 +373,11 @@ export const authAPI = {
 
   getCrushes: () =>
     apiRequest("/users/crushes", {
+      method: "GET",
+    }),
+
+  getWhoHasCrushedOnMe: (page = 1, limit = 20) =>
+    apiRequest(`/users/crushes/who-likes-me?page=${page}&limit=${limit}`, {
       method: "GET",
     }),
 
@@ -466,5 +481,37 @@ export const statsAPI = {
     }),
 };
 
-const apiModule = { apiRequest, authAPI, matchAPI, statsAPI };
+export const chatAPI = {
+  getAllChats: () =>
+    apiRequest("/chat/all", {
+      method: "GET",
+    }),
+
+  createNewChatRoom: (receiverId: string) =>
+    apiRequest("/chat/new", {
+      method: "POST",
+      body: JSON.stringify({ receiverId }),
+    }),
+
+  sendMessage: (roomId: string, text: string, file?: File) => {
+    const formData = new FormData();
+    formData.append('roomId', roomId);
+    formData.append('text', text);
+    if (file) {
+      formData.append('file', file);
+    }
+    
+    return apiRequest("/chat/message", {
+      method: "POST",
+      body: formData,
+    });
+  },
+
+  getMessages: (roomId: string) =>
+    apiRequest(`/chat/message/${roomId}`, {
+      method: "GET",
+    }),
+};
+
+const apiModule = { apiRequest, authAPI, matchAPI, statsAPI, chatAPI };
 export default apiModule;

@@ -34,6 +34,15 @@ interface UserDetailResponse {
   data: UserDetail;
 }
 
+interface CrushResponse {
+  success: boolean;
+  message: string;
+  data?: {
+    crushId: string;
+    crushName?: string;
+  };
+}
+
 interface UserDetail {
   _id: string;
   firstName: string;
@@ -90,6 +99,8 @@ export const UserDetailSheet: React.FC<UserDetailSheetProps> = ({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [startingChat, setStartingChat] = useState(false);
+  const [isCrush, setIsCrush] = useState(false);
+  const [crushLoading, setCrushLoading] = useState(false);
   const router = useRouter();
   const { createOrGetChatRoom } = useChatData();
 
@@ -121,11 +132,54 @@ export const UserDetailSheet: React.FC<UserDetailSheetProps> = ({
     }
   }, [userId]);
 
+  const checkCrushStatus = useCallback(async () => {
+    if (!userId) return;
+
+    try {
+      const response = await apiRequest<{
+        success: boolean;
+        data: {
+          crushes: Array<{ _id: string }>;
+        };
+        message?: string;
+      }>(`/users/crushes`, {
+        method: "GET",
+      });
+
+      if (response.success) {
+        const isUserInCrushes = response.data.crushes.some(
+          (crush) => crush._id === userId
+        );
+        setIsCrush(isUserInCrushes);
+      } else {
+        // If API returns error but it's just "no crushes found", that's okay
+        console.log("Crushes API response:", response.message);
+        setIsCrush(false);
+      }
+    } catch (error: any) {
+      console.error("Error checking crush status:", error);
+      // If it's a 404 or user not found, just assume no crushes
+      if (error?.message?.includes("User not found") || error?.status === 404) {
+        console.log("Assuming no crushes due to user not found error");
+        setIsCrush(false);
+      } else {
+        setIsCrush(false);
+      }
+    }
+  }, [userId]);
+
   useEffect(() => {
     if (userId && isOpen) {
       fetchUserDetails();
     }
   }, [userId, isOpen, fetchUserDetails]);
+
+  // Check crush status when user data is available
+  useEffect(() => {
+    if (user && userId && isOpen) {
+      checkCrushStatus();
+    }
+  }, [user, userId, isOpen, checkCrushStatus]);
 
   const handleStartChat = async () => {
     if (!user) return;
@@ -160,6 +214,50 @@ export const UserDetailSheet: React.FC<UserDetailSheetProps> = ({
     if (user && onPass) {
       onPass(user._id);
       onClose();
+    }
+  };
+
+  const handleCrushToggle = async () => {
+    if (!user) return;
+
+    setCrushLoading(true);
+    try {
+      if (isCrush) {
+        
+        const response = await apiRequest<CrushResponse>(
+          `/users/crushes/${user._id}`,
+          {
+            method: "DELETE",
+          }
+        );
+
+        if (response.success) {
+          setIsCrush(false);
+          toast.success(`Removed ${user.firstName} from your crushes`);
+        } else {
+          toast.error(response.message || "Failed to remove crush");
+        }
+      } else {
+        
+        const response = await apiRequest<CrushResponse>(
+          `/users/crushes/${user._id}`,
+          {
+            method: "POST",
+          }
+        );
+
+        if (response.success) {
+          setIsCrush(true);
+          toast.success(`${user.firstName} is now your crush! 💕`);
+        } else {
+          toast.error(response.message || "Failed to add crush");
+        }
+      }
+    } catch (error) {
+      console.error("Error toggling crush status:", error);
+      toast.error("Something went wrong. Please try again.");
+    } finally {
+      setCrushLoading(false);
     }
   };
 
@@ -438,6 +536,36 @@ export const UserDetailSheet: React.FC<UserDetailSheetProps> = ({
                   </div>
                 </div>
               )}
+
+              <div className="text-center">
+                <Button
+                  onClick={handleCrushToggle}
+                  disabled={crushLoading}
+                  variant={isCrush ? "default" : "outline"}
+                  size="lg"
+                  className={`px-8 py-3 font-semibold transition-all duration-200 ${
+                    isCrush
+                      ? "bg-pink-500 hover:bg-pink-600 text-white border-pink-500"
+                      : "border-pink-200 text-pink-600 hover:bg-pink-50 hover:border-pink-300"
+                  } ${crushLoading ? "opacity-50 cursor-not-allowed" : ""}`}
+                >
+                  {crushLoading ? (
+                    <>
+                      <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                      {isCrush ? "Removing..." : "Adding..."}
+                    </>
+                  ) : (
+                    <>
+                      <Heart
+                        className={`w-5 h-5 mr-2 ${
+                          isCrush ? "fill-current" : ""
+                        }`}
+                      />
+                      {isCrush ? "My Crush" : "Add Crush"}
+                    </>
+                  )}
+                </Button>
+              </div>
 
               <Separator />
 

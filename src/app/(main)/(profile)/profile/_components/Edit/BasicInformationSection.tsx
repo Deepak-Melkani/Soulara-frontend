@@ -2,6 +2,13 @@ import React from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { User as UserIcon, Camera } from "lucide-react";
 import { BasicInformationSectionProps } from "./types";
 import SectionHeader from "./SectionHeader";
@@ -17,25 +24,26 @@ export default function BasicInformationSection({
     }
   };
 
-  // Helper function to format date for input
   const formatDateForInput = (dateString: string | undefined) => {
     if (!dateString) return "";
     const date = new Date(dateString);
-    return date.toISOString().split('T')[0]; // Returns YYYY-MM-DD format
+    return date.toISOString().split("T")[0];
   };
 
-  // Helper function to calculate age from date of birth
   const calculateAge = (dob: string | undefined) => {
     if (!dob) return null;
     const today = new Date();
     const birthDate = new Date(dob);
     let age = today.getFullYear() - birthDate.getFullYear();
     const monthDiff = today.getMonth() - birthDate.getMonth();
-    
-    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+
+    if (
+      monthDiff < 0 ||
+      (monthDiff === 0 && today.getDate() < birthDate.getDate())
+    ) {
       age--;
     }
-    
+
     return age;
   };
 
@@ -83,35 +91,6 @@ export default function BasicInformationSection({
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div className="space-y-3">
-            <Label htmlFor="email" className="text-sm font-medium text-primary">
-              Email Address
-            </Label>
-            <Input
-              id="email"
-              type="email"
-              value={formData.email || ""}
-              onChange={(e) => onFieldChange("email", e.target.value)}
-              placeholder="Enter your email"
-              className="h-11 border-border focus:border-primary focus:ring-primary/20"
-            />
-          </div>
-          <div className="space-y-3">
-            <Label htmlFor="phone" className="text-sm font-medium text-primary">
-              Phone Number
-            </Label>
-            <Input
-              id="phone"
-              type="tel"
-              value={formData.phone || ""}
-              onChange={(e) => onFieldChange("phone", e.target.value)}
-              placeholder="Enter your phone number"
-              className="h-11 border-border focus:border-primary focus:ring-primary/20"
-            />
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="space-y-3">
             <Label htmlFor="dob" className="text-sm font-medium text-primary">
               Date of Birth
               {formData.dob && (
@@ -126,29 +105,42 @@ export default function BasicInformationSection({
               value={formatDateForInput(formData.dob)}
               onChange={(e) => onFieldChange("dob", e.target.value)}
               className="h-11 border-border focus:border-primary focus:ring-primary/20"
-              max={new Date(new Date().setFullYear(new Date().getFullYear() - 18)).toISOString().split('T')[0]}
-              min={new Date(new Date().setFullYear(new Date().getFullYear() - 100)).toISOString().split('T')[0]}
+              max={
+                new Date(new Date().setFullYear(new Date().getFullYear() - 18))
+                  .toISOString()
+                  .split("T")[0]
+              }
+              min={
+                new Date(new Date().setFullYear(new Date().getFullYear() - 100))
+                  .toISOString()
+                  .split("T")[0]
+              }
             />
             <p className="text-xs text-muted-foreground">
               You must be at least 18 years old
             </p>
           </div>
           <div className="space-y-3">
-            <Label htmlFor="gender" className="text-sm font-medium text-primary">
+            <Label
+              htmlFor="gender"
+              className="text-sm font-medium text-primary"
+            >
               Gender
             </Label>
-            <select
-              id="gender"
+            <Select
               value={formData.gender || ""}
-              onChange={(e) => onFieldChange("gender", e.target.value)}
-              className="h-11 w-full border border-border rounded-md px-3 py-2 bg-background focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+              onValueChange={(value) => onFieldChange("gender", value)}
             >
-              <option value="">Select gender</option>
-              <option value="male">Male</option>
-              <option value="female">Female</option>
-              <option value="non-binary">Non-binary</option>
-              <option value="other">Other</option>
-            </select>
+              <SelectTrigger className="h-11 border-border focus:border-primary focus:ring-primary/20">
+                <SelectValue placeholder="Select gender" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="male">Male</SelectItem>
+                <SelectItem value="female">Female</SelectItem>
+                <SelectItem value="non-binary">Non-binary</SelectItem>
+                <SelectItem value="other">Other</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </div>
 

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -23,8 +24,10 @@ import { BarChart, Bar, PieChart as RechartsPieChart, Cell, LineChart, Line, Res
 import { useLike } from '@/hooks/useLike';
 import { useStats } from '@/hooks/useStats';
 import { format, subDays} from 'date-fns';
+import apiModule from '@/lib/api';
 
 const UserStatsPage = () => {
+  const router = useRouter();
   const {
     getLikes,
     getCrushes,
@@ -41,24 +44,85 @@ const UserStatsPage = () => {
   } = useStats();
 
   const [dashboardData, setDashboardData] = useState<any>(null);
-
   const [activeTab, setActiveTab] = useState('overview');
+  
+  // Separate state for different data types
   const [likesData, setLikesData] = useState<any[]>([]);
   const [crushesData, setCrushesData] = useState<any[]>([]);
   const [matchesData, setMatchesData] = useState<any[]>([]);
+  const [whoLikesYouData, setWhoLikesYouData] = useState<any[]>([]);
+  const [chatRooms, setChatRooms] = useState<any[]>([]);
+  const [matchHistory, setMatchHistory] = useState<any[]>([]);
+  
   const [loading, setLoading] = useState(true);
+
+  // Fetch chat rooms data
+  const fetchChatRooms = async () => {
+    try {
+      const response = await apiModule.chatAPI.getAllChats() as any;
+      if (response.success) {
+        setChatRooms(response.chats || []);
+      }
+    } catch (error) {
+      console.error('Error fetching chat rooms:', error);
+    }
+  };
+
+  // Fetch match history
+  const fetchMatchHistory = async () => {
+    try {
+      const response = await apiModule.matchAPI.getMatchHistory() as any;
+      if (response.success) {
+        setMatchHistory(response.data || []);
+      }
+    } catch (error) {
+      console.error('Error fetching match history:', error);
+    }
+  };
+
+  // Fetch who likes you (from match API)
+  const fetchWhoLikesYou = async () => {
+    try {
+      const response = await apiModule.matchAPI.getLikes() as any;
+      if (response.success) {
+        setWhoLikesYouData(response.data || []);
+      }
+    } catch (error) {
+      console.error('Error fetching who likes you:', error);
+    }
+  };
+
+  // Fetch who has crushed on me (NEW - using our custom endpoint)
+  const fetchWhoHasCrushedOnMe = async () => {
+    try {
+      const response = await apiModule.authAPI.getWhoHasCrushedOnMe() as any;
+      if (response.success) {
+        // Use this data for the "Who Added You as Crush" section
+        setWhoLikesYouData(response.data?.crushers || []);
+      }
+    } catch (error) {
+      console.error('Error fetching who has crushed on me:', error);
+    }
+  };
 
   const loadAllData = useCallback(async () => {
     setLoading(true);
     try {
-      // Load dashboard data from the new stats API
+      // Load dashboard data from the stats API
       const dashboard = await getDashboard();
       
-      // Also load the individual likes, crushes, matches for the people section
+      // Load individual data sets in parallel
       const [likes, crushes, matches] = await Promise.all([
         getLikes(),
         getCrushes(), 
         getMatches()
+      ]);
+
+      // Also fetch additional data
+      await Promise.all([
+        fetchChatRooms(),
+        fetchMatchHistory(),
+        fetchWhoHasCrushedOnMe() // Use the new function instead
       ]);
 
       if (dashboard) {
@@ -87,14 +151,25 @@ const UserStatsPage = () => {
   }, [loadAllData]);
 
   const getAvatarUrl = (user: any) => {
-    if (user.profilePicture && user.profilePicture.trim()) {
+    // Handle undefined or null user
+    if (!user) {
+      return `https://api.dicebear.com/7.x/avataaars/svg?seed=unknown-user`;
+    }
+    
+    if (user.profilePicture && typeof user.profilePicture === 'string' && user.profilePicture.trim()) {
       return user.profilePicture;
     }
-    if (user.avatar && user.avatar.trim()) {
+    if (user.avatar && typeof user.avatar === 'string' && user.avatar.trim()) {
       return user.avatar;
     }
-    const seed = `${user.firstName}-${user.lastName}` || user._id || 'user';
+    const seed = `${user.firstName || ''}-${user.lastName || ''}` || user._id || 'user';
     return `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(seed)}`;
+  };
+
+  const handleViewProfile = (userId: string) => {
+    if (userId) {
+      router.push(`/find-match?userId=${userId}`);
+    }
   };
 
   const StatCard = ({ title, value, icon: Icon, description, color = "text-blue-600" }: {
@@ -163,7 +238,7 @@ const UserStatsPage = () => {
       </div>
 
       {/* Overview Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
         <StatCard
           title="Total Likes Given"
           value={dashboardData?.stats.totalLikesGiven || 0}
@@ -172,33 +247,48 @@ const UserStatsPage = () => {
           color="text-pink-600"
         />
         <StatCard
-          title="People Who Like You"
-          value={dashboardData?.stats.totalLikesReceived || 0}
+          title="Who Added You as Crush"
+          value={whoLikesYouData.length || 0}
           icon={UserCheck}
-          description="Your admirers"
+          description="People who crushed on you"
           color="text-purple-600"
         />
         <StatCard
+          title="Your Crushes"
+          value={crushesData.length || 0}
+          icon={Star}
+          description="People you marked as crush"
+          color="text-red-600"
+        />
+        <StatCard
           title="Mutual Matches"
-          value={dashboardData?.stats.totalMatches || 0}
+          value={matchesData.length || 0}
           icon={Users}
           description="Perfect connections"
           color="text-green-600"
+        />
+        <StatCard
+          title="Active Chats"
+          value={chatRooms.length || 0}
+          icon={MessageCircle}
+          description="Ongoing conversations"
+          color="text-blue-600"
         />
         <StatCard
           title="Match Rate"
           value={`${dashboardData?.stats.matchRate || 0}%`}
           icon={TrendingUp}
           description="Success percentage"
-          color="text-blue-600"
+          color="text-orange-600"
         />
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="activity">Activity</TabsTrigger>
-          <TabsTrigger value="people">People</TabsTrigger>
+          <TabsTrigger value="crushes">Crushes</TabsTrigger>
+          <TabsTrigger value="matches">Matches</TabsTrigger>
+          <TabsTrigger value="chats">Chats</TabsTrigger>
           <TabsTrigger value="insights">Insights</TabsTrigger>
         </TabsList>
 
@@ -262,6 +352,352 @@ const UserStatsPage = () => {
           </div>
         </TabsContent>
 
+        <TabsContent value="crushes" className="space-y-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* People You Added as Crush */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Star className="h-5 w-5 text-red-600" />
+                  Your Crushes ({crushesData.length})
+                </CardTitle>
+                <CardDescription>People you've marked as crushes</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {crushesData.length > 0 ? (
+                  <>
+                    {crushesData.slice(0, 8).map((person, index) => (
+                      <div key={index} className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted">
+                        <Avatar className="h-12 w-12">
+                          <AvatarImage src={getAvatarUrl(person)} />
+                          <AvatarFallback>
+                            {person.firstName?.[0]}{person.lastName?.[0]}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1">
+                          <p className="font-medium">{person.firstName} {person.lastName}</p>
+                          <p className="text-sm text-muted-foreground">
+                            {person.age ? `${person.age} years old` : 'Age not specified'}
+                            {person.location && ` • ${person.location}`}
+                          </p>
+                          {person.isMatch && (
+                            <Badge variant="default" className="text-xs mt-1">
+                              <Heart className="h-3 w-3 mr-1" />
+                              Mutual Match!
+                            </Badge>
+                          )}
+                        </div>
+                        <div className="flex gap-2">
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            onClick={() => handleViewProfile(person._id || person.id)}
+                          >
+                            View Profile
+                          </Button>
+                          <Button size="sm" variant="outline">
+                            <MessageCircle className="h-4 w-4 mr-1" />
+                            Chat
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                    {crushesData.length > 8 && (
+                      <Button variant="outline" size="sm" className="w-full">
+                        View All {crushesData.length} Crushes
+                      </Button>
+                    )}
+                  </>
+                ) : (
+                  <div className="text-center py-8">
+                    <Star className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                    <p className="text-muted-foreground">No crushes yet</p>
+                    <p className="text-sm text-muted-foreground">Start exploring profiles to add crushes!</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* People Who Added You as Crush */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <UserCheck className="h-5 w-5 text-purple-600" />
+                  Who Added You as Crush ({whoLikesYouData.length})
+                </CardTitle>
+                <CardDescription>People who have added you to their crushes list</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {whoLikesYouData.length > 0 ? (
+                  <>
+                    {whoLikesYouData.slice(0, 8).map((person, index) => (
+                      <div key={index} className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted">
+                        <Avatar className="h-12 w-12">
+                          <AvatarImage src={getAvatarUrl(person)} />
+                          <AvatarFallback>
+                            {person.firstName?.[0]}{person.lastName?.[0]}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1">
+                          <p className="font-medium">{person.firstName} {person.lastName}</p>
+                          <p className="text-sm text-muted-foreground">
+                            {person.age ? `${person.age} years old` : 'Age not specified'}
+                            {person.location && ` • ${person.location}`}
+                          </p>
+                          {person.isMatch && (
+                            <Badge variant="default" className="text-xs mt-1">
+                              <Users className="h-3 w-3 mr-1" />
+                              It's a Match!
+                            </Badge>
+                          )}
+                        </div>
+                        <div className="flex gap-2">
+                          <Button size="sm" variant="default">
+                            <Heart className="h-4 w-4 mr-1" />
+                            Add to Crush
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            onClick={() => handleViewProfile(person._id || person.id)}
+                          >
+                            View Profile
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                    {whoLikesYouData.length > 8 && (
+                      <Button variant="outline" size="sm" className="w-full">
+                        View All {whoLikesYouData.length} Admirers
+                      </Button>
+                    )}
+                  </>
+                ) : (
+                  <div className="text-center py-8">
+                    <UserCheck className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                    <p className="text-muted-foreground">No one has added you as crush yet</p>
+                    <p className="text-sm text-muted-foreground">Keep your profile active to get more attention!</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="matches" className="space-y-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Mutual Matches */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Users className="h-5 w-5 text-green-600" />
+                  Mutual Matches ({matchesData.length})
+                </CardTitle>
+                <CardDescription>People you both liked each other</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {matchesData.length > 0 ? (
+                  <>
+                    {matchesData.slice(0, 8).map((person, index) => (
+                      <div key={index} className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted">
+                        <Avatar className="h-12 w-12">
+                          <AvatarImage src={getAvatarUrl(person)} />
+                          <AvatarFallback>
+                            {person.firstName?.[0]}{person.lastName?.[0]}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1">
+                          <p className="font-medium">{person.firstName} {person.lastName}</p>
+                          <p className="text-sm text-muted-foreground">
+                            {person.age ? `${person.age} years old` : 'Age not specified'}
+                            {person.location && ` • ${person.location}`}
+                          </p>
+                          <Badge variant="default" className="text-xs mt-1">
+                            <Users className="h-3 w-3 mr-1" />
+                            Mutual Match
+                          </Badge>
+                        </div>
+                        <div className="flex gap-2">
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            onClick={() => handleViewProfile(person._id || person.id)}
+                          >
+                            View Profile
+                          </Button>
+                          <Button size="sm" variant="default">
+                            <MessageCircle className="h-4 w-4 mr-1" />
+                            Start Chat
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                    {matchesData.length > 8 && (
+                      <Button variant="outline" size="sm" className="w-full">
+                        View All {matchesData.length} Matches
+                      </Button>
+                    )}
+                  </>
+                ) : (
+                  <div className="text-center py-8">
+                    <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                    <p className="text-muted-foreground">No mutual matches yet</p>
+                    <p className="text-sm text-muted-foreground">Keep liking profiles to find your matches!</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Match Analytics */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Match Analytics</CardTitle>
+                <CardDescription>Your matching performance</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <div className="flex justify-between mb-2">
+                    <span className="text-sm font-medium">Match Rate</span>
+                    <span className="text-sm text-muted-foreground">{dashboardData?.stats.matchRate || 0}%</span>
+                  </div>
+                  <Progress value={dashboardData?.stats.matchRate || 0} className="h-2" />
+                </div>
+                
+                <div>
+                  <div className="flex justify-between mb-2">
+                    <span className="text-sm font-medium">Response Rate</span>
+                    <span className="text-sm text-muted-foreground">{dashboardData?.stats.responseRate || 0}%</span>
+                  </div>
+                  <Progress value={dashboardData?.stats.responseRate || 0} className="h-2" />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4 mt-4">
+                  <div className="text-center p-3 bg-muted rounded-lg">
+                    <div className="text-2xl font-bold text-green-600">{matchesData.length}</div>
+                    <div className="text-sm text-muted-foreground">Total Matches</div>
+                  </div>
+                  <div className="text-center p-3 bg-muted rounded-lg">
+                    <div className="text-2xl font-bold text-blue-600">{chatRooms.length}</div>
+                    <div className="text-sm text-muted-foreground">Active Chats</div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="chats" className="space-y-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Active Conversations */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <MessageCircle className="h-5 w-5 text-blue-600" />
+                  Active Conversations ({chatRooms.length})
+                </CardTitle>
+                <CardDescription>Your ongoing chats</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {chatRooms.length > 0 ? (
+                  <>
+                    {chatRooms.slice(0, 8).map((room, index) => (
+                      <div key={index} className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted">
+                        <Avatar className="h-12 w-12">
+                          <AvatarImage src={getAvatarUrl(room.otherUser)} />
+                          <AvatarFallback>
+                            {room.otherUser?.firstName?.[0]}{room.otherUser?.lastName?.[0]}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1">
+                          <p className="font-medium">{room.otherUser?.firstName} {room.otherUser?.lastName}</p>
+                          <p className="text-sm text-muted-foreground truncate">
+                            {room.lastMessage?.content || 'No messages yet'}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {room.lastMessage?.createdAt ? format(new Date(room.lastMessage.createdAt), 'MMM dd, HH:mm') : ''}
+                          </p>
+                        </div>
+                        <div className="flex flex-col items-end gap-1">
+                          {room.unreadCount > 0 && (
+                            <Badge variant="default" className="text-xs">
+                              {room.unreadCount}
+                            </Badge>
+                          )}
+                          <div className="flex gap-2">
+                            <Button 
+                              size="sm" 
+                              variant="outline"
+                              onClick={() => handleViewProfile(room.otherUser?._id || room.otherUser?.id)}
+                            >
+                              View Profile
+                            </Button>
+                            <Button size="sm" variant="outline">
+                              Open Chat
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                    {chatRooms.length > 8 && (
+                      <Button variant="outline" size="sm" className="w-full">
+                        View All {chatRooms.length} Chats
+                      </Button>
+                    )}
+                  </>
+                ) : (
+                  <div className="text-center py-8">
+                    <MessageCircle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                    <p className="text-muted-foreground">No active conversations</p>
+                    <p className="text-sm text-muted-foreground">Start chatting with your matches!</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Chat Statistics */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Chat Analytics</CardTitle>
+                <CardDescription>Your conversation insights</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="text-center p-3 bg-muted rounded-lg">
+                    <div className="text-2xl font-bold text-blue-600">{chatRooms.length}</div>
+                    <div className="text-sm text-muted-foreground">Total Chats</div>
+                  </div>
+                  <div className="text-center p-3 bg-muted rounded-lg">
+                    <div className="text-2xl font-bold text-green-600">
+                      {chatRooms.filter(room => room.unreadCount > 0).length}
+                    </div>
+                    <div className="text-sm text-muted-foreground">Active Chats</div>
+                  </div>
+                </div>
+                
+                <div>
+                  <div className="flex justify-between mb-2">
+                    <span className="text-sm font-medium">Chat Initiation Rate</span>
+                    <span className="text-sm text-muted-foreground">
+                      {dashboardData?.stats.chatInitiationRate || 0}%
+                    </span>
+                  </div>
+                  <Progress value={dashboardData?.stats.chatInitiationRate || 0} className="h-2" />
+                </div>
+
+                <div>
+                  <div className="flex justify-between mb-2">
+                    <span className="text-sm font-medium">Average Chat Length</span>
+                    <span className="text-sm text-muted-foreground">
+                      {dashboardData?.stats.avgChatLength || 0} messages
+                    </span>
+                  </div>
+                  <Progress value={Math.min((dashboardData?.stats.avgChatLength || 0) * 5, 100)} className="h-2" />
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
         <TabsContent value="activity" className="space-y-4">
           <Card>
             <CardHeader>
@@ -282,116 +718,6 @@ const UserStatsPage = () => {
               </ChartContainer>
             </CardContent>
           </Card>
-        </TabsContent>
-
-        <TabsContent value="people" className="space-y-4">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* People You Liked */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Heart className="h-5 w-5 text-pink-600" />
-                  People You Liked ({dashboardData?.stats.totalLikesGiven || 0})
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                {likesData.slice(0, 5).map((person, index) => (
-                  <div key={index} className="flex items-center gap-3">
-                    <Avatar className="h-10 w-10">
-                      <AvatarImage src={getAvatarUrl(person)} />
-                      <AvatarFallback>
-                        {person.firstName?.[0]}{person.lastName?.[0]}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1">
-                      <p className="font-medium">{person.firstName} {person.lastName}</p>
-                      {person.isMatch && (
-                        <Badge variant="secondary" className="text-xs">
-                          <Heart className="h-3 w-3 mr-1" />
-                          Match
-                        </Badge>
-                      )}
-                    </div>
-                  </div>
-                ))}
-                {likesData.length > 5 && (
-                  <Button variant="outline" size="sm" className="w-full">
-                    View All ({likesData.length})
-                  </Button>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* People Who Like You */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <UserCheck className="h-5 w-5 text-purple-600" />
-                  Your Admirers ({dashboardData?.stats.totalLikesReceived || 0})
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                {crushesData.slice(0, 5).map((person, index) => (
-                  <div key={index} className="flex items-center gap-3">
-                    <Avatar className="h-10 w-10">
-                      <AvatarImage src={getAvatarUrl(person)} />
-                      <AvatarFallback>
-                        {person.firstName?.[0]}{person.lastName?.[0]}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1">
-                      <p className="font-medium">{person.firstName} {person.lastName}</p>
-                      {person.isMatch && (
-                        <Badge variant="secondary" className="text-xs">
-                          <Users className="h-3 w-3 mr-1" />
-                          Match
-                        </Badge>
-                      )}
-                    </div>
-                  </div>
-                ))}
-                {crushesData.length > 5 && (
-                  <Button variant="outline" size="sm" className="w-full">
-                    View All ({crushesData.length})
-                  </Button>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* Mutual Matches */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Users className="h-5 w-5 text-green-600" />
-                  Mutual Matches ({dashboardData?.stats.totalMatches || 0})
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                {matchesData.slice(0, 5).map((person, index) => (
-                  <div key={index} className="flex items-center gap-3">
-                    <Avatar className="h-10 w-10">
-                      <AvatarImage src={getAvatarUrl(person)} />
-                      <AvatarFallback>
-                        {person.firstName?.[0]}{person.lastName?.[0]}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1">
-                      <p className="font-medium">{person.firstName} {person.lastName}</p>
-                      <Badge variant="default" className="text-xs">
-                        <MessageCircle className="h-3 w-3 mr-1" />
-                        Chat Now
-                      </Badge>
-                    </div>
-                  </div>
-                ))}
-                {matchesData.length > 5 && (
-                  <Button variant="outline" size="sm" className="w-full">
-                    View All ({matchesData.length})
-                  </Button>
-                )}
-              </CardContent>
-            </Card>
-          </div>
         </TabsContent>
 
         <TabsContent value="insights" className="space-y-4">

@@ -43,30 +43,22 @@ export default function PersonalDetailsSection({
           </div>
           <div className="space-y-3">
             <Label
-              htmlFor="education"
+              htmlFor="religion"
               className="text-sm font-medium text-primary"
             >
-              Education Level
+              Religion (Optional)
             </Label>
-            <Select
-              value={formData.education || ""}
-              onValueChange={(value) => onFieldChange("education", value)}
-            >
-              <SelectTrigger className="h-11 border-border focus:border-primary focus:ring-primary/20">
-                <SelectValue placeholder="Select your education level" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="high_school">High School</SelectItem>
-                <SelectItem value="bachelor">Bachelor&apos;s Degree</SelectItem>
-                <SelectItem value="master">Master&apos;s Degree</SelectItem>
-                <SelectItem value="phd">PhD</SelectItem>
-                <SelectItem value="other">Other</SelectItem>
-              </SelectContent>
-            </Select>
+            <Input
+              id="religion"
+              value={formData.religion || ""}
+              onChange={(e) => onFieldChange("religion", e.target.value)}
+              placeholder="Your religion or beliefs"
+              className="h-11 border-border focus:border-primary focus:ring-primary/20"
+            />
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-3">
             <Label
               htmlFor="height"
@@ -113,21 +105,6 @@ export default function PersonalDetailsSection({
                 </SelectItem>
               </SelectContent>
             </Select>
-          </div>
-          <div className="space-y-3">
-            <Label
-              htmlFor="religion"
-              className="text-sm font-medium text-primary"
-            >
-              Religion (Optional)
-            </Label>
-            <Input
-              id="religion"
-              value={formData.religion || ""}
-              onChange={(e) => onFieldChange("religion", e.target.value)}
-              placeholder="Your religion or beliefs"
-              className="h-11 border-border focus:border-primary focus:ring-primary/20"
-            />
           </div>
         </div>
 
@@ -206,6 +183,31 @@ export default function PersonalDetailsSection({
               </SelectContent>
             </Select>
           </div>
+
+           <div className="space-y-3">
+            <Label
+              htmlFor="education"
+              className="text-sm font-medium text-primary"
+            >
+              Education Level
+            </Label>
+            <Select
+              value={formData.education || ""}
+              onValueChange={(value) => onFieldChange("education", value)}
+            >
+              <SelectTrigger className="h-11 border-border focus:border-primary focus:ring-primary/20">
+                <SelectValue placeholder="Select your education" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="high_school">High School</SelectItem>
+                <SelectItem value="bachelor">Bachelor&apos;s Degree</SelectItem>
+                <SelectItem value="master">Master&apos;s Degree</SelectItem>
+                <SelectItem value="phd">PhD</SelectItem>
+                <SelectItem value="other">Other</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          
         </div>
       </div>
     </div>

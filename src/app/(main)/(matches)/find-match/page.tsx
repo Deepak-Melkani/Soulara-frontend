@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import Confetti from "react-confetti";
 import {
   MatchHeader,
@@ -19,6 +20,10 @@ import { toast } from "sonner";
 import { MatchUser } from "./types";
 
 const FindMatchPage = () => {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const userIdFromQuery = searchParams.get('userId');
+  
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [isUserDetailOpen, setIsUserDetailOpen] = useState(false);
@@ -44,6 +49,14 @@ const FindMatchPage = () => {
     return () => window.removeEventListener("resize", updateDimensions);
   }, []);
 
+  // Handle userId from query parameters
+  useEffect(() => {
+    if (userIdFromQuery) {
+      setSelectedUserId(userIdFromQuery);
+      setIsUserDetailOpen(true);
+    }
+  }, [userIdFromQuery]);
+
   const triggerConfetti = () => {
     setShowConfetti(true);
 
@@ -65,10 +78,7 @@ const FindMatchPage = () => {
     clearFilters,
   } = useMatchFinder();
 
-  const {
-    likeUser,
-    clearError: clearMatchError,
-  } = useLike();
+  const { likeUser, clearError: clearMatchError } = useLike();
 
   const handleFilterClick = () => {
     setIsFilterOpen(true);
@@ -85,11 +95,21 @@ const FindMatchPage = () => {
   const handleUserClick = (userId: string) => {
     setSelectedUserId(userId);
     setIsUserDetailOpen(true);
+    
+    // Update URL with userId query parameter for shareable links
+    const currentUrl = new URL(window.location.href);
+    currentUrl.searchParams.set('userId', userId);
+    window.history.pushState({}, '', currentUrl.toString());
   };
 
   const handleCloseUserDetail = () => {
     setIsUserDetailOpen(false);
     setSelectedUserId(null);
+    
+    // Clear the userId query parameter when closing the detail sheet
+    const currentUrl = new URL(window.location.href);
+    currentUrl.searchParams.delete('userId');
+    window.history.pushState({}, '', currentUrl.toString());
   };
 
   const handleEnhancedLike = async (userId: string) => {
@@ -135,7 +155,7 @@ const FindMatchPage = () => {
   const handleEnhancedPass = async (userId: string) => {
     try {
       clearMatchError();
-      
+
       toast.info("👋 Passed", {
         description: "You passed on this user.",
         duration: 2000,
@@ -273,35 +293,40 @@ const FindMatchPage = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Confetti Animation */}
       {showConfetti && (
         <Confetti
           width={windowDimensions.width}
           height={windowDimensions.height}
           numberOfPieces={200}
           gravity={0.3}
-          colors={['#ff69b4', '#ff1493', '#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#feca57']}
+          colors={[
+            "#ff69b4",
+            "#ff1493",
+            "#ff6b6b",
+            "#4ecdc4",
+            "#45b7d1",
+            "#96ceb4",
+            "#feca57",
+          ]}
           style={{
-            position: 'fixed',
+            position: "fixed",
             top: 0,
             left: 0,
             zIndex: 9999,
-            pointerEvents: 'none'
+            pointerEvents: "none",
           }}
         />
       )}
-      
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <MatchHeader onFilterClick={handleFilterClick} />
 
-        {/* Search Bar */}
         <SearchBar
           onUserClick={handleUserClick}
           onLike={handleEnhancedLike}
           onPass={handleEnhancedPass}
         />
 
-        {/* AI Recommended Users Carousel */}
         <RecommendedCarousel
           recommendedUsers={recommendedMatches}
           onUserClick={handleUserClick}
