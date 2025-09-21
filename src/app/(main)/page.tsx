@@ -13,7 +13,7 @@ import OceanModel from '@/components/ocean/ocean-model'
 import { Button } from '@/components/ui/button'
 
 const HomePage = () => {
-  const [showOceanModal, setShowOceanModal] = useState(false);
+  const [showOceanModal, setShowOceanModal] = useState(false); 
 
   return (
     <>

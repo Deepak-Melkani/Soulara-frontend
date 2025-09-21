@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import Image from "next/image";
 import { Search, MessageCircle } from "lucide-react";
 import { Chat, ChatUser } from "../types";
-import { getAvatarUrl, getUserInitials } from "@/lib/avatar-utils";
+import { getUserInitials } from "@/lib/avatar-utils";
 
 interface ChatSidebarProps {
   chats: Chat[];

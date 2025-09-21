@@ -4,7 +4,7 @@ import React from 'react'
 import { Check } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
-interface PricingTierProps {
+export interface PricingTierProps {
   name: string
   price: string
   period: string

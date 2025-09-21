@@ -165,16 +165,22 @@ const Navbar = () => {
                         About
                       </Link>
                       <Link
-                        href="/features"
+                        href="/find-match"
                         className="text-sm font-sans text-muted-foreground hover:text-foreground transition-colors"
                       >
-                        Features
+                        Find Match
                       </Link>
                       <Link
                         href="/pricing"
                         className="text-sm font-sans text-muted-foreground hover:text-foreground transition-colors"
                       >
                         Pricing
+                      </Link>
+                      <Link
+                        href="/contact-us"
+                        className="text-sm font-sans text-muted-foreground hover:text-foreground transition-colors"
+                      >
+                        Contact Us
                       </Link>
                     </div>
 
