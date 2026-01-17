@@ -10,7 +10,7 @@ const AboutUsPage = () => {
       id: 1,
       name: "Deepak Melkani",
       role: "Full Stack Developer",
-      image: "/assets/deepakTq.png",
+      image: "/assets/deepakTq(2).png",
       description:
         "Expert in node.js and React, creating seamless user experiences and matching algorithms.",
       socialLinks: [
