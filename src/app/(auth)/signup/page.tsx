@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Eye, EyeOff, Mail, Lock, User, Check, Phone } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { toast } from "sonner";
+import { ValidationErrorResponse } from "@/types/auth.types";
 
 const SignupPage = () => {
   const [formData, setFormData] = useState({
@@ -69,6 +70,7 @@ const SignupPage = () => {
     // Validate password match
     if (formData.password !== formData.confirmPassword) {
       setError("Passwords do not match");
+      toast.error("Passwords do not match");
       setIsLoading(false);
       return;
     }
@@ -76,26 +78,44 @@ const SignupPage = () => {
     // Validate password strength
     if (passwordStrength < 4) {
       setError("Password is too weak. Please create a stronger password.");
+      toast.error("Password is too weak. Please create a stronger password.");
       setIsLoading(false);
       return;
     }
 
     try {
-      await signup(
+      const response = await signup(
         formData.firstName,
         formData.lastName,
         formData.email,
         formData.phone,
         formData.password
       );
+      
+      // Check if response contains validation errors
+      if (response && typeof response === 'object' && 'errorCode' in response) {
+        const errorResponse = response as ValidationErrorResponse;
+        
+        if (errorResponse.errorCode === "VALIDATION_ERROR" && errorResponse.errors) {
+          // Display each validation error
+          errorResponse.errors.forEach((err) => {
+            toast.error(err.message);
+          });
+          setError(errorResponse.message || "Validation failed");
+          setIsLoading(false);
+          return;
+        }
+      }
+      
       setSuccess("Account created successfully! Please login to continue.");
       toast.success("Account created successfully! Please login to continue.");
       setTimeout(() => {
         router.push("/login");
       }, 2000);
     } catch (error) {
-      setError(error instanceof Error ? error.message : "Signup failed");
-      toast.error("Signup failed");
+      const errorMessage = error instanceof Error ? error.message : "Signup failed";
+      setError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setIsLoading(false);
     }

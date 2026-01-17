@@ -95,8 +95,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   ) => {
     dispatch({ type: "LOGIN_START" });
     try {
-      await authAPI.signup(firstName, lastName, email, phone, password);
+      const response = await authAPI.signup(firstName, lastName, email, phone, password);
+      
+      // Check if response contains validation errors
+      if (response && typeof response === 'object' && 'errorCode' in response) {
+        const errorResponse = response as { errorCode?: string; message?: string };
+        if (errorResponse.errorCode === "VALIDATION_ERROR") {
+          dispatch({ type: "LOGIN_FAILURE", payload: errorResponse.message || "Validation failed" });
+          return response; // Return the error response to the caller
+        }
+      }
+      
       dispatch({ type: "CLEAR_ERROR" });
+      return response;
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "Signup failed";
       dispatch({ type: "LOGIN_FAILURE", payload: errorMessage });

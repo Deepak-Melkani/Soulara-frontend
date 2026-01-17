@@ -165,6 +165,15 @@ export interface LoginResponse {
   };
 }
 
+// Validation error response interface
+export interface ValidationErrorResponse {
+  success: false;
+  error: true;
+  errorCode: "VALIDATION_ERROR";
+  errors: Array<{ field: string; message: string }>;
+  message: string;
+}
+
 // Auth context interface
 export interface AuthContextType extends AuthState {
   login: (email: string, password: string) => Promise<void>;
@@ -174,7 +183,7 @@ export interface AuthContextType extends AuthState {
     email: string,
     phone: string,
     password: string
-  ) => Promise<void>;
+  ) => Promise<unknown>;
   logout: (redirectTo?: string) => void;
   updateProfile: (data: Partial<User>) => void;
   clearError: () => void;
