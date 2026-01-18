@@ -6,6 +6,8 @@ import { AuthProvider } from "@/context/AuthContext";
 import { SocketProvider } from "@/context/SocketContext";
 import { TokenManager } from "@/components/TokenManager";
 import { Toaster } from "@/components/ui/sonner";
+import { GoogleOAuthProvider } from "@react-oauth/google";
+import config from "@/lib/config";
 
 const roboto = Roboto({
   variable: "--font-roboto",
@@ -186,15 +188,17 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
+          <GoogleOAuthProvider clientId={config.googleClientId}>
           <AuthProvider>
             <SocketProvider>
               <TokenManager />
-              <div id="app-root" className="min-h-screen">
+              <div suppressHydrationWarning className="min-h-screen">
                 {children}
                 <Toaster richColors/>
               </div>
             </SocketProvider>
           </AuthProvider>
+          </GoogleOAuthProvider>
         </ThemeProvider>
         <script
           type="application/ld+json"

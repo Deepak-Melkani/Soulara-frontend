@@ -1,6 +1,6 @@
 import Cookies from "js-cookie";
 import config from "./config";
-import { User } from "@/types/auth.types";
+import { LoginResponse, User } from "@/types/auth.types";
 
 const API_BASE_URL = config.apiBaseUrl;
 
@@ -260,6 +260,17 @@ export const authAPI = {
       },
       false
     ),
+
+  googleLogin: (idToken: string): Promise<LoginResponse> => 
+    apiRequest<LoginResponse>(
+      "/users/google/login",
+      {
+        method: "POST",
+        body: JSON.stringify(idToken),
+      },
+      false
+    ) 
+  ,
 
   signup: (
     firstName: string,

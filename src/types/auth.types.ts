@@ -184,6 +184,9 @@ export interface AuthContextType extends AuthState {
     phone: string,
     password: string
   ) => Promise<unknown>;
+  googleLogin: (
+    idToken: string,
+  ) => Promise<void>,
   logout: (redirectTo?: string) => void;
   updateProfile: (data: Partial<User>) => void;
   clearError: () => void;

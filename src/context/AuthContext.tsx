@@ -91,7 +91,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     lastName: string,
     email: string,
     phone: string,
-    password: string
+    password: string 
   ) => {
     dispatch({ type: "LOGIN_START" });
     try {
@@ -114,6 +114,22 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       throw error;
     }
   };
+
+  const googleLogin = async (idToken: string) => {
+    dispatch({type: "LOGIN_START"});
+    try {
+      const response = (await authAPI.googleLogin(idToken)) as LoginResponse;
+      const userData = response.data.user;
+      const accessToken = response.data.accessToken;
+      if(!accessToken) throw new Error("Access token can't be null");
+      const user = AuthService.transformLoginResponseToUser(userData);
+      const refreshToken = response.data.refreshToken;
+      AuthStorage.setAuthData(user, accessToken, refreshToken);
+      dispatch({type: "LOGIN_SUCCESS", payload: user});
+    } catch(error) {
+
+    }
+  }
 
   const logout = async (redirectTo: string = '/') => {
     try {
@@ -139,6 +155,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const value: AuthContextType = {
     ...state,
     login,
+    googleLogin,
     signup,
     logout,
     updateProfile,

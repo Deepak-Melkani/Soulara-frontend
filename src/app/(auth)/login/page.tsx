@@ -4,6 +4,7 @@ import React, { useState, Suspense } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
+import { GoogleLogin, CredentialResponse } from "@react-oauth/google";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Eye, EyeOff, Mail, Lock, Sparkles } from "lucide-react";
@@ -17,12 +18,12 @@ const LoginForm = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const { login } = useAuth();
+  const { login, googleLogin } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
-  
+
   // Get the redirect URL from query parameters
-  const redirectTo = searchParams.get('redirect') || '/';
+  const redirectTo = searchParams.get("redirect") || "/";
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -133,7 +134,7 @@ const LoginForm = () => {
                           "focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20",
                           "transition-all duration-300",
                           "hover:border-muted-foreground",
-                          "min-h-[48px]"
+                          "min-h-[48px]",
                         )}
                         placeholder="Enter your email address"
                         required
@@ -165,7 +166,7 @@ const LoginForm = () => {
                           "focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20",
                           "transition-all duration-300",
                           "hover:border-muted-foreground",
-                          "min-h-[48px]"
+                          "min-h-[48px]",
                         )}
                         placeholder="Enter your password"
                         required
@@ -222,7 +223,7 @@ const LoginForm = () => {
                       "focus:ring-2 focus:ring-primary-500/25 focus:outline-none",
                       "disabled:opacity-50 disabled:cursor-not-allowed",
                       "transition-all duration-200",
-                      "min-h-[48px]"
+                      "min-h-[48px]",
                     )}
                   >
                     {isLoading ? (
@@ -261,7 +262,7 @@ const LoginForm = () => {
                     </div>
                   </div>
 
-                  <Button
+                  {/* <Button
                     type="button"
                     variant="outline"
                     className={cn(
@@ -290,7 +291,38 @@ const LoginForm = () => {
                       />
                     </svg>
                     Continue with Google
-                  </Button>
+                  </Button> */}
+                  <div>
+                    <GoogleLogin
+                      size="large"
+                      width="100%"
+                      theme="filled_blue"
+                      onError={() => {
+                        toast.error("Google signup failed!!!");
+                      }}
+                      onSuccess={async (
+                        credentialResponse: CredentialResponse,
+                      ) => {
+                        if (credentialResponse.credential) {
+                          try {
+                            setIsLoading(true);
+                            await googleLogin(credentialResponse.credential);
+                            toast.success("Login successful!");
+                            router.push(redirectTo);
+                          } catch (err) {
+                            setError(
+                              err instanceof Error
+                                ? err.message
+                                : "Google login failed",
+                            );
+                            toast.error("Google login failed");
+                          } finally {
+                            setIsLoading(false);
+                          }
+                        }
+                      }}
+                    />
+                  </div>
                 </form>
 
                 <div className="mt-8 text-center">

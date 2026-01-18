@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { GoogleLogin, CredentialResponse } from "@react-oauth/google";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -27,7 +28,7 @@ const SignupPage = () => {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
-  const { signup } = useAuth();
+  const { signup, googleLogin } = useAuth();
   const router = useRouter();
 
   const handleInputChange = (field: string, value: string) => {
@@ -83,20 +84,30 @@ const SignupPage = () => {
       return;
     }
 
+    if (formData.phone.length != 10) {
+      setError("Phone number must be 10 digits!!!");
+      toast.error("Phone number must be 10 digits!!!");
+      setIsLoading(false);
+      return;
+    }
+
     try {
       const response = await signup(
         formData.firstName,
         formData.lastName,
         formData.email,
         formData.phone,
-        formData.password
+        formData.password,
       );
-      
+
       // Check if response contains validation errors
-      if (response && typeof response === 'object' && 'errorCode' in response) {
+      if (response && typeof response === "object" && "errorCode" in response) {
         const errorResponse = response as ValidationErrorResponse;
-        
-        if (errorResponse.errorCode === "VALIDATION_ERROR" && errorResponse.errors) {
+
+        if (
+          errorResponse.errorCode === "VALIDATION_ERROR" &&
+          errorResponse.errors
+        ) {
           // Display each validation error
           errorResponse.errors.forEach((err) => {
             toast.error(err.message);
@@ -106,14 +117,15 @@ const SignupPage = () => {
           return;
         }
       }
-      
+
       setSuccess("Account created successfully! Please login to continue.");
       toast.success("Account created successfully! Please login to continue.");
       setTimeout(() => {
         router.push("/login");
       }, 2000);
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Signup failed";
+      const errorMessage =
+        error instanceof Error ? error.message : "Signup failed";
       setError(errorMessage);
       toast.error(errorMessage);
     } finally {
@@ -127,8 +139,7 @@ const SignupPage = () => {
 
   return (
     <>
-      <div className="min-h-screen bg-gradient-to-br from-primary-50 via-background to-primary-100 dark:from-background dark:via-card dark:to-primary-950 flex items-center justify-center p-3 md:p-1"
-      >
+      <div className="min-h-screen bg-gradient-to-br from-primary-50 via-background to-primary-100 dark:from-background dark:via-card dark:to-primary-950 flex items-center justify-center p-3 md:p-1">
         <div className="w-full max-w-5xl bg-card/95 dark:bg-card/95 backdrop-blur-xl rounded-2xl shadow-xl border border-border dark:border-border overflow-hidden relative">
           <div className="flex flex-col lg:flex-row relative z-10">
             {/* Image Section - Hidden on mobile */}
@@ -195,7 +206,7 @@ const SignupPage = () => {
                             "placeholder:text-muted-foreground",
                             "focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20",
                             "transition-all duration-300",
-                            "hover:border-muted-foreground"
+                            "hover:border-muted-foreground",
                           )}
                           placeholder="First name"
                           required
@@ -224,7 +235,7 @@ const SignupPage = () => {
                           "placeholder:text-muted-foreground",
                           "focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20",
                           "transition-all duration-300",
-                          "hover:border-muted-foreground"
+                          "hover:border-muted-foreground",
                         )}
                         placeholder="Last name"
                         required
@@ -257,7 +268,7 @@ const SignupPage = () => {
                           "placeholder:text-muted-foreground",
                           "focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20",
                           "transition-all duration-300",
-                          "hover:border-muted-foreground"
+                          "hover:border-muted-foreground",
                         )}
                         placeholder="Enter your email address"
                         required
@@ -290,7 +301,7 @@ const SignupPage = () => {
                           "placeholder:text-muted-foreground",
                           "focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20",
                           "transition-all duration-300",
-                          "hover:border-muted-foreground"
+                          "hover:border-muted-foreground",
                         )}
                         placeholder="Enter your phone number"
                         required
@@ -323,7 +334,7 @@ const SignupPage = () => {
                           "placeholder:text-muted-foreground",
                           "focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20",
                           "transition-all duration-300",
-                          "hover:border-muted-foreground"
+                          "hover:border-muted-foreground",
                         )}
                         placeholder="Create a password"
                         required
@@ -353,9 +364,9 @@ const SignupPage = () => {
                                   ? passwordStrength <= 2
                                     ? "bg-red-500"
                                     : passwordStrength <= 3
-                                    ? "bg-yellow-500"
-                                    : "bg-green-500"
-                                  : "bg-border"
+                                      ? "bg-yellow-500"
+                                      : "bg-green-500"
+                                  : "bg-border",
                               )}
                             />
                           ))}
@@ -363,7 +374,7 @@ const SignupPage = () => {
                         <p
                           className={cn(
                             "text-xs font-medium",
-                            getPasswordStrengthText().color
+                            getPasswordStrengthText().color,
                           )}
                         >
                           {getPasswordStrengthText().text}
@@ -395,13 +406,13 @@ const SignupPage = () => {
                           formData.confirmPassword === ""
                             ? "border-border"
                             : passwordMatch
-                            ? "border-primary-500"
-                            : "border-destructive",
+                              ? "border-primary-500"
+                              : "border-destructive",
                           "bg-background dark:bg-input text-foreground",
                           "placeholder:text-muted-foreground",
                           "focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20",
                           "transition-all duration-300",
-                          "hover:border-muted-foreground"
+                          "hover:border-muted-foreground",
                         )}
                         placeholder="Confirm your password"
                         required
@@ -481,7 +492,7 @@ const SignupPage = () => {
                       "shadow-md hover:shadow-lg",
                       "focus:ring-2 focus:ring-primary-500/25 focus:outline-none",
                       "disabled:opacity-50 disabled:cursor-not-allowed",
-                      "transition-all duration-200"
+                      "transition-all duration-200",
                     )}
                   >
                     {isLoading ? (
@@ -505,7 +516,7 @@ const SignupPage = () => {
                     </div>
                   </div>
 
-                  <Button
+                  {/* <Button
                     type="button"
                     variant="outline"
                     className={cn(
@@ -533,7 +544,39 @@ const SignupPage = () => {
                       />
                     </svg>
                     Continue with Google
-                  </Button>
+                  </Button> */}
+
+                  <div>
+                    <GoogleLogin
+                      size="large"
+                      width="100%"
+                      theme="filled_blue"
+                      onError={() => {
+                        toast.error("Google signup failed!!!");
+                      }}
+                      onSuccess={async (
+                        credentialResponse: CredentialResponse,
+                      ) => {
+                        if (credentialResponse.credential) {
+                          try {
+                            setIsLoading(true);
+                            await googleLogin(credentialResponse.credential);
+                            toast.success("Signup successful!");
+                            router.push("/");
+                          } catch (err) {
+                            setError(
+                              err instanceof Error
+                                ? err.message
+                                : "Google signup failed",
+                            );
+                            toast.error("Google signup failed");
+                          } finally {
+                            setIsLoading(false);
+                          }
+                        }
+                      }}
+                    />
+                  </div>
                 </form>
 
                 <div className="mt-4 text-center">

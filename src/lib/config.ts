@@ -5,6 +5,7 @@ interface Config {
   environment: 'development' | 'production' | 'test';
   isDevelopment: boolean;
   isProduction: boolean;
+  googleClientId: string;
 }
 
 const config: Config = {
@@ -16,6 +17,7 @@ const config: Config = {
   environment: (process.env.NODE_ENV as 'development' | 'production' | 'test') || 'development',
   isDevelopment: process.env.NODE_ENV === 'development',
   isProduction: process.env.NODE_ENV === 'production',
+  googleClientId: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || ""
 };
 
 // Validate required environment variables
